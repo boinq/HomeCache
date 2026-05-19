@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% if item %}
+    {% set page_title = "Edit " ~ item.name %}
+    {% set submit_label = "Save changes" %}
+{% else %}
+    {% set page_title = "Add item" %}
+    {% set submit_label = "Add item" %}
+{% endif %}
+
+{% block title %}{{ page_title }} - HomeCache{% endblock %}
+
+{% block content %}
+<section class="form-layout">
+    <article class="panel form-panel">
+        <div class="form-header">
+            <div>
+                <p class="eyebrow">Inventory item</p>
+                <h2>{{ page_title }}</h2>
+            </div>
+
+            <a class="button ghost" href="/items">Back</a>
+        </div>
+
+        <form method="post" action="{{ form_action }}" class="item-form">
+            <section class="form-section">
+                <h3>Basic info</h3>
+
+                <div class="form-grid">
+                    <div class="field span-2">
+                        <label for="name">Name</label>
+                        <input
+                            id="name"
+                            name="name"
+                            type="text"
+                            required
+                            autofocus
+                            value="{% if item %}{{ item.name }}{% endif %}"
+                            placeholder="Milk, pasta, batteries..."
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="category">Category</label>
+                        {% set selected_category = item.category if item else "food" %}
+                        <select id="category" name="category">
+                            {% if categories %}
+                                {% for category in categories %}
+                                    <option
+                                        value="{{ category.name }}"
+                                        {% if selected_category == category.name %}selected{% endif %}
+                                    >
+                                        {{ category.name }}
+                                    </option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="food">food</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="storage_type">Storage type</label>
+                        {% set selected_storage_type = item.storage_type if item else "other" %}
+                        <select id="storage_type" name="storage_type">
+                            <option value="pantry" {% if selected_storage_type == "pantry" %}selected{% endif %}>Pantry</option>
+                            <option value="fridge" {% if selected_storage_type == "fridge" %}selected{% endif %}>Fridge</option>
+                            <option value="freezer" {% if selected_storage_type == "freezer" %}selected{% endif %}>Freezer</option>
+                            <option value="cabinet" {% if selected_storage_type == "cabinet" %}selected{% endif %}>Cabinet</option>
+                            <option value="drawer" {% if selected_storage_type == "drawer" %}selected{% endif %}>Drawer</option>
+                            <option value="shelf" {% if selected_storage_type == "shelf" %}selected{% endif %}>Shelf</option>
+                            <option value="box" {% if selected_storage_type == "box" %}selected{% endif %}>Box</option>
+                            <option value="garage" {% if selected_storage_type == "garage" %}selected{% endif %}>Garage</option>
+                            <option value="basement" {% if selected_storage_type == "basement" %}selected{% endif %}>Basement</option>
+                            <option value="other" {% if selected_storage_type == "other" %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="quantity">Quantity</label>
+                        <input
+                            id="quantity"
+                            name="quantity"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value="{% if item %}{{ item.quantity }}{% else %}1{% endif %}"
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="unit">Unit</label>
+                        <input
+                            id="unit"
+                            name="unit"
+                            type="text"
+                            value="{% if item %}{{ item.unit }}{% else %}pcs{% endif %}"
+                            placeholder="pcs, kg, g, L..."
+                        >
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <h3>Location</h3>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="storage_location">Storage location</label>
+                        {% set selected_location = item.storage_location if item else "unknown" %}
+                        <select id="storage_location" name="storage_location">
+                            {% if locations %}
+                                {% for location in locations %}
+                                    <option
+                                        value="{{ location.name }}"
+                                        {% if selected_location == location.name %}selected{% endif %}
+                                    >
+                                        {{ location.name }}
+                                    </option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="unknown">unknown</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="storage_area">Storage area</label>
+                        <input
+                            id="storage_area"
+                            name="storage_area"
+                            type="text"
+                            value="{% if item and item.storage_area %}{{ item.storage_area }}{% endif %}"
+                            placeholder="Shelf 2, drawer 1..."
+                        >
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="container">Container</label>
+                        <input
+                            id="container"
+                            name="container"
+                            type="text"
+                            value="{% if item and item.container %}{{ item.container }}{% endif %}"
+                            placeholder="Blue box, glass jar, freezer bag..."
+                        >
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <h3>Optional details</h3>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="brand">Brand</label>
+                        <input
+                            id="brand"
+                            name="brand"
+                            type="text"
+                            value="{% if item and item.brand %}{{ item.brand }}{% endif %}"
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="barcode">Barcode</label>
+                        <input
+                            id="barcode"
+                            name="barcode"
+                            type="text"
+                            value="{% if item and item.barcode %}{{ item.barcode }}{% endif %}"
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="serial_number">Serial number</label>
+                        <input
+                            id="serial_number"
+                            name="serial_number"
+                            type="text"
+                            value="{% if item and item.serial_number %}{{ item.serial_number }}{% endif %}"
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="warranty_expiry">Warranty expiry</label>
+                        <input
+                            id="warranty_expiry"
+                            name="warranty_expiry"
+                            type="date"
+                            value="{% if item and item.warranty_expiry %}{{ item.warranty_expiry }}{% endif %}"
+                        >
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="notes">Notes</label>
+                        <textarea
+                            id="notes"
+                            name="notes"
+                            rows="4"
+                            placeholder="Anything useful to remember..."
+                        >{% if item and item.notes %}{{ item.notes }}{% endif %}</textarea>
+                    </div>
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <button class="button" type="submit" name="save_action" value="detail">{{ submit_label }}</button>
+                {% if not item %}
+                    <button class="button secondary" type="submit" name="save_action" value="new">Add and new</button>
+                {% endif %}
+                <a class="button ghost" href="{% if item %}/items/{{ item.id }}{% else %}/items{% endif %}">Cancel</a>
+            </div>
+        </form>
+    </article>
+</section>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Print labels - HomeCache{% endblock %}
+
+{% block content %}
+<section class="print-labels-page">
+    <div class="print-labels-toolbar no-print">
+        <div>
+            <h2>Print labels</h2>
+            <p class="subtitle">
+                <span data-selected-count>{{ items | length }}</span>
+                selected item<span data-selected-plural>{% if items | length != 1 %}s{% endif %}</span>.
+            </p>
+        </div>
+
+        <div class="toolbar-actions">
+            <a class="button ghost" href="/items">Back to items</a>
+            {% if all_items %}
+                <button class="button ghost" type="button" data-label-select="all">All</button>
+                <button class="button ghost" type="button" data-label-select="none">None</button>
+                <button class="button secondary" type="submit" form="label-print-form">Apply selection</button>
+                <button class="button" type="button" data-label-print>Print</button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if all_items %}
+        <form id="label-print-form" action="/print-labels" method="get">
+            <input type="hidden" name="selected" value="true">
+            <section class="label-sheet">
+                {% for entry in all_items %}
+                    {% set item = entry.item %}
+                    {% set batch = entry.batch %}
+                    <article class="sheet-label {% if not selected or batch.id|string in selected_batch_ids %}is-print-selected{% endif %}">
+                        <label class="sheet-label-select no-print">
+                            <input
+                                type="checkbox"
+                                name="batch_id"
+                                value="{{ batch.id }}"
+                                {% if not selected or batch.id|string in selected_batch_ids %}checked{% endif %}
+                            >
+                            <span>Print</span>
+                        </label>
+
+                        <div class="sheet-label-qr">
+                            <img src="/items/{{ item.id }}/batches/{{ batch.id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.id }}">
+                        </div>
+
+                        <div class="sheet-label-info">
+                            <h3>{{ item.name }}</h3>
+
+                            <p>
+                                {{ batch.quantity }} {{ item.unit }}
+                                &middot; {{ item.category }}
+                            </p>
+
+                            <p>
+                                <strong>Location:</strong>
+                                {{ item.storage_location }}
+                                {% if item.storage_area %}
+                                    / {{ item.storage_area }}
+                                {% endif %}
+                            </p>
+
+                            {% if item.container %}
+                                <p>
+                                    <strong>Container:</strong>
+                                    {{ item.container }}
+                                </p>
+                            {% endif %}
+
+                            {% if batch.purchase_date %}
+                                <p>
+                                    <strong>Purchased:</strong>
+                                    {{ batch.purchase_date }}
+                                </p>
+                            {% endif %}
+
+                            {% if batch.expiry_date %}
+                                <p>
+                                    <strong>Expires:</strong>
+                                    {{ batch.expiry_date }}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+            </section>
+        </form>
+    {% else %}
+        <section class="empty-state no-print">
+            <h2>No active items</h2>
+            <p>Add some items before printing labels.</p>
+            <a class="button" href="/items/new">Add item</a>
+        </section>
+    {% endif %}
+</section>
+
+<script>
+    const labelInputs = document.querySelectorAll(".sheet-label-select input");
+    const selectedCount = document.querySelector("[data-selected-count]");
+    const selectedPlural = document.querySelector("[data-selected-plural]");
+
+    function updatePrintSelection() {
+        let count = 0;
+
+        labelInputs.forEach((input) => {
+            const label = input.closest(".sheet-label");
+            label.classList.toggle("is-print-selected", input.checked);
+
+            if (input.checked) {
+                count += 1;
+            }
+        });
+
+        if (selectedCount) {
+            selectedCount.textContent = count;
+        }
+
+        if (selectedPlural) {
+            selectedPlural.textContent = count === 1 ? "" : "s";
+        }
+    }
+
+    labelInputs.forEach((input) => {
+        input.addEventListener("change", updatePrintSelection);
+    });
+
+    document.querySelector("[data-label-select='all']")?.addEventListener("click", () => {
+        labelInputs.forEach((input) => {
+            input.checked = true;
+        });
+        updatePrintSelection();
+    });
+
+    document.querySelector("[data-label-select='none']")?.addEventListener("click", () => {
+        labelInputs.forEach((input) => {
+            input.checked = false;
+        });
+        updatePrintSelection();
+    });
+
+    document.querySelector("[data-label-print]")?.addEventListener("click", () => {
+        updatePrintSelection();
+        window.print();
+    });
+
+    updatePrintSelection();
+</script>
+{% endblock %}

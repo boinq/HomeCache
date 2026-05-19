@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Locations - HomeCache{% endblock %}
+
+{% block content %}
+<section class="locations-layout">
+    <article class="panel locations-panel">
+        <div class="form-header">
+            <div>
+                <p class="eyebrow">Storage</p>
+                <h2>Locations</h2>
+                <p class="subtitle">Manage the places you can choose from when adding or editing items.</p>
+            </div>
+
+            <a class="button ghost" href="/items">Back</a>
+        </div>
+
+        <form class="location-create-form" method="post" action="/locations">
+            <div class="field">
+                <label for="name">New location</label>
+                <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required
+                    placeholder="Kitchen, garage, pantry..."
+                >
+            </div>
+
+            <button class="button" type="submit">Add location</button>
+        </form>
+
+        {% if locations %}
+            <section class="location-list">
+                {% for location in locations %}
+                    {% set item_count = item_counts.get(location.name, 0) %}
+                    <article class="location-row">
+                        <form class="location-edit-form" method="post" action="/locations/{{ location.id }}/edit">
+                            <div class="field">
+                                <label for="location-{{ location.id }}">Name</label>
+                                <input
+                                    id="location-{{ location.id }}"
+                                    name="name"
+                                    type="text"
+                                    required
+                                    value="{{ location.name }}"
+                                >
+                            </div>
+
+                            <div class="location-meta">
+                                {{ item_count }} item{% if item_count != 1 %}s{% endif %}
+                            </div>
+
+                            <button class="button small secondary" type="submit">Save</button>
+                        </form>
+
+                        <form method="post" action="/locations/{{ location.id }}/delete">
+                            <button
+                                class="button small danger"
+                                type="submit"
+                                {% if item_count > 0 %}disabled title="Move items out of this location before deleting it"{% endif %}
+                            >
+                                Delete
+                            </button>
+                        </form>
+                    </article>
+                {% endfor %}
+            </section>
+        {% else %}
+            <section class="empty-state">
+                <h2>No locations yet</h2>
+                <p>Add your first storage location to use it on item forms.</p>
+            </section>
+        {% endif %}
+    </article>
+</section>
+{% endblock %}

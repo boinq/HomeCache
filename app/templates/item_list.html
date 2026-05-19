@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Items - HomeCache{% endblock %}
+
+{% block content %}
+<section class="panel">
+    <form class="filters" method="get" action="/items">
+        <div class="field">
+            <label for="q">Search</label>
+            <input
+                id="q"
+                name="q"
+                type="search"
+                value="{{ q }}"
+                placeholder="Milk, batteries, pasta..."
+            >
+        </div>
+
+        <div class="field">
+            <label for="location">Location</label>
+            <input
+                id="location"
+                name="location"
+                type="text"
+                value="{{ location }}"
+                placeholder="Fridge, pantry, garage..."
+            >
+        </div>
+
+        <div class="field">
+            <label for="category">Category</label>
+            <input
+                id="category"
+                name="category"
+                type="text"
+                value="{{ category }}"
+                placeholder="food, tools, cleaning..."
+            >
+        </div>
+
+        <div class="filter-actions">
+            <button class="button" type="submit">Filter</button>
+            <a class="button ghost" href="/items">Clear</a>
+        </div>
+    </form>
+</section>
+
+<section class="items-header">
+    <h2>Items</h2>
+    <span class="count">
+        {{ items | length }} item{% if items | length != 1 %}s{% endif %}
+    </span>
+</section>
+
+<section class="sort-panel">
+    <form class="sort-form" method="get" action="/items">
+        <input type="hidden" name="q" value="{{ q }}">
+        <input type="hidden" name="location" value="{{ location }}">
+        <input type="hidden" name="category" value="{{ category }}">
+
+        <div class="field">
+            <select id="sort_by" name="sort_by" aria-label="Sort by" data-auto-submit>
+                <option value="" {% if not sort_by %}selected{% endif %}>Default</option>
+                <option value="purchase_date" {% if sort_by == "purchase_date" %}selected{% endif %}>Purchase date</option>
+                <option value="expiry_date" {% if sort_by == "expiry_date" %}selected{% endif %}>Expiry date</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <select id="sort_dir" name="sort_dir" aria-label="Sort direction" data-auto-submit>
+                <option value="asc" {% if sort_dir == "asc" %}selected{% endif %}>ASC</option>
+                <option value="desc" {% if sort_dir == "desc" %}selected{% endif %}>DESC</option>
+            </select>
+        </div>
+    </form>
+</section>
+
+{% if items %}
+    <section class="item-grid">
+        {% for item in items %}
+            <article class="item-card">
+                <div class="item-card-main">
+                    <div>
+                        <h3>
+                            <a href="/items/{{ item.id }}">{{ item.name }}</a>
+                        </h3>
+
+                        <p class="meta">
+                            {{ item.quantity }} {{ item.unit }}
+                            · {{ item.category }}
+                        </p>
+                    </div>
+
+                    <a class="qr-thumb" href="/items/{{ item.id }}/label" title="View label">
+                        <img src="/items/{{ item.id }}/qr" alt="QR code for {{ item.name }}">
+                    </a>
+                </div>
+
+                <dl class="item-details">
+                    <div>
+                        <dt>Location</dt>
+                        <dd>
+                            {{ item.storage_location }}
+                            {% if item.storage_area %}
+                                / {{ item.storage_area }}
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Purchased</dt>
+                        <dd>
+                            {% if item.purchase_date %}
+                                {{ item.purchase_date }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Expires</dt>
+                        <dd>
+                            {% if item.expiry_date %}
+                                <span class="expiry">{{ item.expiry_date }}</span>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </dd>
+                    </div>
+                </dl>
+
+                {% if item.notes %}
+                    <p class="notes">{{ item.notes }}</p>
+                {% endif %}
+
+                <div class="card-actions">
+                    <a class="button small secondary" href="/items/{{ item.id }}">View</a>
+                    <a class="button small ghost" href="/items/{{ item.id }}/edit">Edit</a>
+                    <a class="button small ghost" href="/items/{{ item.id }}/label">Label</a>
+                </div>
+            </article>
+        {% endfor %}
+    </section>
+{% else %}
+    <section class="empty-state">
+        <h2>No items found</h2>
+        <p>Add your first item or clear the current filters.</p>
+        <a class="button" href="/items/new">Add item</a>
+    </section>
+{% endif %}
+<script>
+    document.querySelectorAll("[data-auto-submit]").forEach((input) => {
+        input.addEventListener("change", () => {
+            input.form.requestSubmit();
+        });
+    });
+</script>
+{% endblock %}

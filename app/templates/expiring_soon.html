@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Expiring soon - HomeCache{% endblock %}
+
+{% block content %}
+<section class="items-header">
+    <div>
+        <h2>Expiring soon</h2>
+        <p class="subtitle">
+            Items expiring between {{ today }} and {{ cutoff }}.
+        </p>
+    </div>
+
+    <form class="days-filter" method="get" action="/expiring-soon">
+        <label for="days">Days</label>
+        <input
+            id="days"
+            name="days"
+            type="number"
+            min="1"
+            max="365"
+            value="{{ days }}"
+        >
+        <button class="button small" type="submit">Update</button>
+    </form>
+</section>
+
+{% if items %}
+    <section class="item-grid">
+        {% for item in items %}
+            <article class="item-card">
+                <div class="item-card-main">
+                    <div>
+                        <h3>
+                            <a href="/items/{{ item.id }}">{{ item.name }}</a>
+                        </h3>
+
+                        <p class="meta">
+                            {{ item.quantity }} {{ item.unit }}
+                            · {{ item.category }}
+                        </p>
+                    </div>
+
+                    <a class="qr-thumb" href="/items/{{ item.id }}/label" title="View label">
+                        <img src="/items/{{ item.id }}/qr" alt="QR code for {{ item.name }}">
+                    </a>
+                </div>
+
+                <dl class="item-details">
+                    <div>
+                        <dt>Expires</dt>
+                        <dd>
+                            <strong>{{ item.expiry_date }}</strong>
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Location</dt>
+                        <dd>
+                            {{ item.storage_location }}
+                            {% if item.storage_area %}
+                                / {{ item.storage_area }}
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Purchased</dt>
+                        <dd>
+                            {% if item.purchase_date %}
+                                {{ item.purchase_date }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </dd>
+                    </div>
+                </dl>
+
+                {% if item.notes %}
+                    <p class="notes">{{ item.notes }}</p>
+                {% endif %}
+
+                <div class="card-actions">
+                    <a class="button small secondary" href="/items/{{ item.id }}">View</a>
+                    <a class="button small ghost" href="/items/{{ item.id }}/edit">Edit</a>
+                    <a class="button small ghost" href="/items/{{ item.id }}/label">Label</a>
+                </div>
+            </article>
+        {% endfor %}
+    </section>
+{% else %}
+    <section class="empty-state">
+        <h2>No items expiring soon</h2>
+        <p>No active items expire in the next {{ days }} days.</p>
+        <a class="button" href="/items">Back to items</a>
+    </section>
+{% endif %}
+{% endblock %}

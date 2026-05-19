@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>{% block title %}HomeCache{% endblock %}</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <input class="menu-toggle" id="menu-toggle" type="checkbox" aria-hidden="true" checked>
+
+    <header class="site-header">
+        <label class="menu-button" for="menu-toggle" aria-label="Open navigation menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </label>
+
+        <div>
+            <h1>
+                <a class="brand-link" href="/items">HomeCache</a>
+            </h1>
+            <p class="subtitle">Food and household inventory</p>
+        </div>
+    </header>
+
+    <label class="menu-backdrop" for="menu-toggle" aria-label="Close navigation menu"></label>
+
+    <aside class="side-menu" aria-label="Main navigation">
+        <div class="side-menu-header">
+            <div>
+                <h2>Menu</h2>
+                <p class="subtitle">HomeCache</p>
+            </div>
+
+            <label class="menu-close" for="menu-toggle" aria-label="Close navigation menu">&times;</label>
+        </div>
+
+        <nav class="side-menu-nav">
+            <a class="button secondary" href="/items">Items</a>
+            <a class="button" href="/items/new">Add item</a>
+            <a class="button secondary" href="/categories">Categories</a>
+            <a class="button secondary" href="/locations">Locations</a>
+            <a class="button secondary" href="/expiring-soon">Expiring soon</a>
+            <a class="button secondary" href="/print-labels">Print labels</a>
+        </nav>
+    </aside>
+
+    <main class="page">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

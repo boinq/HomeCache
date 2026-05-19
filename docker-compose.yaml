@@ -1,0 +1,12 @@
+services:
+  inventory:
+    build: .
+    container_name: inventory
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+    environment:
+      - DATABASE_URL=sqlite:////data/inventory.db
+      - BASE_URL=http://inventory.local:8000
+    restart: unless-stopped

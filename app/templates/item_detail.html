@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.name }} - HomeCache{% endblock %}
+
+{% block content %}
+<section class="detail-layout">
+    <article class="panel detail-panel">
+        <div class="detail-header">
+            <div>
+                <p class="eyebrow">{{ item.category }}</p>
+                <h2>{{ item.name }}</h2>
+                <p class="meta">
+                    {{ item.quantity }} {{ item.unit }}
+                    · {{ item.status }}
+                </p>
+            </div>
+
+            <div class="detail-actions">
+                <a class="button secondary" href="/items/{{ item.id }}/edit">Edit</a>
+                <a class="button ghost" href="/items/{{ item.id }}/label">Label</a>
+                <a class="button ghost" href="/items">Back</a>
+            </div>
+        </div>
+
+        <dl class="detail-list">
+            <div>
+                <dt>Storage location</dt>
+                <dd>{{ item.storage_location }}</dd>
+            </div>
+
+            <div>
+                <dt>Storage area</dt>
+                <dd>
+                    {% if item.storage_area %}
+                        {{ item.storage_area }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Container</dt>
+                <dd>
+                    {% if item.container %}
+                        {{ item.container }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Purchased</dt>
+                <dd>
+                    {% if item.purchase_date %}
+                        {{ item.purchase_date }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Expires</dt>
+                <dd>
+                    {% if item.expiry_date %}
+                        <strong>{{ item.expiry_date }}</strong>
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Opened</dt>
+                <dd>
+                    {% if item.opened_date %}
+                        {{ item.opened_date }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Frozen</dt>
+                <dd>
+                    {% if item.frozen_date %}
+                        {{ item.frozen_date }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Brand</dt>
+                <dd>
+                    {% if item.brand %}
+                        {{ item.brand }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Barcode</dt>
+                <dd>
+                    {% if item.barcode %}
+                        {{ item.barcode }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Serial number</dt>
+                <dd>
+                    {% if item.serial_number %}
+                        {{ item.serial_number }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Warranty expiry</dt>
+                <dd>
+                    {% if item.warranty_expiry %}
+                        {{ item.warranty_expiry }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Created</dt>
+                <dd>{{ item.created_at.strftime("%Y-%m-%d %H:%M") }}</dd>
+            </div>
+
+            <div>
+                <dt>Updated</dt>
+                <dd>{{ item.updated_at.strftime("%Y-%m-%d %H:%M") }}</dd>
+            </div>
+        </dl>
+
+        {% if item.notes %}
+            <section class="notes-block">
+                <h3>Notes</h3>
+                <p>{{ item.notes }}</p>
+            </section>
+        {% endif %}
+
+        <section class="batches-block">
+            <div class="batches-header">
+                <div>
+                    <h3>Purchase batches</h3>
+                    <p class="subtitle">Track each purchase of this product separately.</p>
+                </div>
+            </div>
+
+            {% if batches %}
+                <div class="batch-list">
+                    {% for batch in batches %}
+                        <article class="batch-row" id="batch-{{ batch.id }}">
+                            <a class="batch-qr" href="/items/{{ item.id }}/batches/{{ batch.id }}/qr" target="_blank" title="Open batch QR">
+                                <img src="/items/{{ item.id }}/batches/{{ batch.id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.id }}">
+                            </a>
+
+                            <div>
+                                <span class="batch-label">Quantity</span>
+                                <strong>{{ batch.quantity }} {{ item.unit }}</strong>
+                            </div>
+
+                            <div>
+                                <span class="batch-label">Purchased</span>
+                                {% if batch.purchase_date %}
+                                    {{ batch.purchase_date }}
+                                {% else %}
+                                    â€”
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <span class="batch-label">Expires</span>
+                                {% if batch.expiry_date %}
+                                    {{ batch.expiry_date }}
+                                {% else %}
+                                    â€”
+                                {% endif %}
+                            </div>
+
+                            <form method="post" action="/items/{{ item.id }}/batches/{{ batch.id }}/delete">
+                                <button class="button small danger" type="submit">Remove</button>
+                            </form>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form class="batch-form" method="post" action="/items/{{ item.id }}/batches">
+                <div class="field">
+                    <label for="batch_quantity">Quantity</label>
+                    <input
+                        id="batch_quantity"
+                        name="quantity"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value="1"
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="batch_purchase_date">Purchase date</label>
+                    <input id="batch_purchase_date" name="purchase_date" type="date">
+                </div>
+
+                <div class="field">
+                    <label for="batch_expiry_date">Expiry date</label>
+                    <input id="batch_expiry_date" name="expiry_date" type="date">
+                </div>
+
+                <button class="button" type="submit">Add batch</button>
+            </form>
+        </section>
+
+        <section class="danger-zone">
+            <h3>Item actions</h3>
+
+            <div class="card-actions">
+                <form method="post" action="/items/{{ item.id }}/consume">
+                    <button class="button secondary" type="submit">Mark consumed</button>
+                </form>
+
+                <form method="post" action="/items/{{ item.id }}/discard">
+                    <button class="button danger" type="submit">Mark discarded</button>
+                </form>
+            </div>
+        </section>
+    </article>
+
+    <aside class="panel qr-panel">
+        <h3>QR label</h3>
+
+        <div class="qr-large">
+            <img src="/items/{{ item.id }}/qr" alt="QR code for {{ item.name }}">
+        </div>
+
+        <p class="qr-url">{{ qr_url }}</p>
+
+        <div class="card-actions">
+            <a class="button" href="/items/{{ item.id }}/label">Print label</a>
+            <a class="button ghost" href="/items/{{ item.id }}/qr" target="_blank">Open QR</a>
+        </div>
+    </aside>
+</section>
+{% endblock %}

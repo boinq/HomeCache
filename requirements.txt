@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+sqlmodel
+jinja2
+python-multipart
+qrcode[pil]
+pillow

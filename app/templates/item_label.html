@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Label - {{ item.name }} - HomeCache{% endblock %}
+
+{% block content %}
+<section class="label-page">
+    <div class="label-toolbar no-print">
+        <a class="button ghost" href="/items/{{ item.id }}">Back to item</a>
+        <button class="button" type="button" onclick="window.print()">Print label</button>
+    </div>
+
+    <article class="print-label">
+        <div class="print-label-qr">
+            {% if batch %}
+                <img src="/items/{{ item.id }}/batches/{{ batch.id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.id }}">
+            {% else %}
+                <img src="/items/{{ item.id }}/qr" alt="QR code for {{ item.name }}">
+            {% endif %}
+        </div>
+
+        <div class="print-label-info">
+            <h2>{{ item.name }}</h2>
+
+            <p>
+                {% if batch %}{{ batch.quantity }}{% else %}{{ item.quantity }}{% endif %} {{ item.unit }}
+                &middot; {{ item.category }}
+            </p>
+
+            <p>
+                <strong>Location:</strong>
+                {{ item.storage_location }}
+                {% if item.storage_area %}
+                    / {{ item.storage_area }}
+                {% endif %}
+            </p>
+
+            {% if batch and batch.expiry_date %}
+                <p>
+                    <strong>Expires:</strong>
+                    {{ batch.expiry_date }}
+                </p>
+            {% endif %}
+
+            {% if batch and batch.purchase_date %}
+                <p>
+                    <strong>Purchased:</strong>
+                    {{ batch.purchase_date }}
+                </p>
+            {% endif %}
+        </div>
+    </article>
+
+    <p class="label-url no-print">{{ qr_url }}</p>
+</section>
+{% endblock %}
