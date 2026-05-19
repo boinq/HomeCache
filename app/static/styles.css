@@ -561,6 +561,12 @@ textarea:focus {
     margin-bottom: 1rem;
 }
 
+.batch-empty {
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-weight: 700;
+}
+
 .batch-row {
     display: grid;
     grid-template-columns: 58px minmax(0, 1fr) minmax(110px, 0.75fr) minmax(110px, 0.75fr) auto;
@@ -638,6 +644,54 @@ textarea:focus {
     color: var(--muted);
     font-size: 0.85rem;
     overflow-wrap: anywhere;
+}
+
+.scan-layout {
+    display: grid;
+    justify-items: center;
+}
+
+.scan-panel {
+    width: min(100%, 560px);
+    padding: 1.25rem;
+}
+
+.scan-panel h2 {
+    margin: 0.2rem 0 1rem;
+    font-size: 2rem;
+    letter-spacing: -0.04em;
+}
+
+.scan-quantity {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--panel-soft);
+}
+
+.scan-quantity span {
+    color: var(--muted);
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+.scan-quantity strong {
+    font-size: 2.3rem;
+    letter-spacing: -0.04em;
+}
+
+.scan-detail-list {
+    grid-template-columns: 1fr;
+}
+
+.scan-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1rem;
 }
 
 .form-layout {

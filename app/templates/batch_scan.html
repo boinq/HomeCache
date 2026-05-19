@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Consume batch - {{ item.name }} - HomeCache{% endblock %}
+
+{% block content %}
+<section class="scan-layout">
+    <article class="panel scan-panel">
+        <p class="eyebrow">{{ item.category }}</p>
+        <h2>{{ item.name }}</h2>
+
+        <div class="scan-quantity">
+            <span>Batch quantity</span>
+            <strong>{{ batch.quantity | int }} {{ item.unit }}</strong>
+        </div>
+
+        <dl class="detail-list scan-detail-list">
+            <div>
+                <dt>Location</dt>
+                <dd>
+                    {{ item.storage_location }}
+                    {% if item.storage_area %}
+                        / {{ item.storage_area }}
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Container</dt>
+                <dd>
+                    {% if item.container %}
+                        {{ item.container }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Purchased</dt>
+                <dd>
+                    {% if batch.purchase_date %}
+                        {{ batch.purchase_date }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Expires</dt>
+                <dd>
+                    {% if batch.expiry_date %}
+                        {{ batch.expiry_date }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </dd>
+            </div>
+        </dl>
+
+        <div class="scan-actions">
+            <form method="post" action="/b/{{ batch.public_id }}/consume">
+                <button class="button" type="submit">Consume</button>
+            </form>
+            <a class="button ghost" href="/items/{{ item.id }}#batch-{{ batch.public_id }}">View item</a>
+        </div>
+    </article>
+</section>
+{% endblock %}

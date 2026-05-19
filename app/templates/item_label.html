@@ -12,7 +12,7 @@
     <article class="print-label">
         <div class="print-label-qr">
             {% if batch %}
-                <img src="/items/{{ item.id }}/batches/{{ batch.id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.id }}">
+                <img src="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.public_id }}">
             {% else %}
                 <img src="/items/{{ item.id }}/qr" alt="QR code for {{ item.name }}">
             {% endif %}
@@ -22,7 +22,7 @@
             <h2>{{ item.name }}</h2>
 
             <p>
-                {% if batch %}{{ batch.quantity }}{% else %}{{ item.quantity }}{% endif %} {{ item.unit }}
+                {% if batch %}{{ batch.quantity | int }}{% else %}{{ item.quantity | int }}{% endif %} {{ item.unit }}
                 &middot; {{ item.category }}
             </p>
 

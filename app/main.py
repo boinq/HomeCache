@@ -2,13 +2,14 @@ import os
 from datetime import date, datetime, timedelta
 from io import BytesIO
 from typing import Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import qrcode
 from fastapi import Depends, FastAPI, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import text
 from sqlmodel import Session, select
 
 from app.database import create_db_and_tables, engine, get_session
@@ -47,6 +48,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 @app.on_event("startup")
 def on_startup() -> None:
     create_db_and_tables()
+    ensure_item_batch_public_ids()
     seed_locations_from_items()
     seed_categories_from_items()
     seed_item_batches_from_items()
@@ -136,13 +138,15 @@ def list_item_batches(session: Session, item_id: UUID) -> list[ItemBatch]:
     statement = (
         select(ItemBatch)
         .where(ItemBatch.item_id == item_id)
-        .order_by(ItemBatch.expiry_date, ItemBatch.purchase_date, ItemBatch.id)
+        .order_by(ItemBatch.expiry_date, ItemBatch.purchase_date, ItemBatch.public_id)
     )
     return session.exec(statement).all()
 
 
-def get_batch_or_404(session: Session, batch_id: int) -> ItemBatch:
-    batch = session.get(ItemBatch, batch_id)
+def get_batch_or_404(session: Session, batch_public_id: UUID) -> ItemBatch:
+    batch = session.exec(
+        select(ItemBatch).where(ItemBatch.public_id == batch_public_id)
+    ).first()
     if not batch:
         raise HTTPException(status_code=404, detail="Batch not found")
     return batch
@@ -152,7 +156,7 @@ def get_primary_item_batch(session: Session, item: Item) -> Optional[ItemBatch]:
     return session.exec(
         select(ItemBatch)
         .where(ItemBatch.item_id == item.id)
-        .order_by(ItemBatch.expiry_date, ItemBatch.purchase_date, ItemBatch.id)
+        .order_by(ItemBatch.expiry_date, ItemBatch.purchase_date, ItemBatch.public_id)
     ).first()
 
 
@@ -161,7 +165,12 @@ def list_print_label_batches(session: Session) -> list[dict]:
         select(ItemBatch, Item)
         .join(Item, ItemBatch.item_id == Item.id)
         .where(Item.status == ItemStatus.ACTIVE)
-        .order_by(Item.storage_location, Item.name, ItemBatch.expiry_date, ItemBatch.id)
+        .order_by(
+            Item.storage_location,
+            Item.name,
+            ItemBatch.expiry_date,
+            ItemBatch.public_id,
+        )
     )
     return [
         {"batch": batch, "item": item}
@@ -175,7 +184,7 @@ def sync_item_batch_summary(
     batches: Optional[list[ItemBatch]] = None,
 ) -> None:
     batches = batches if batches is not None else list_item_batches(session, item.id)
-    item.quantity = sum(batch.quantity for batch in batches)
+    item.quantity = sum(int(batch.quantity) for batch in batches)
 
     purchase_dates = [
         batch.purchase_date for batch in batches if batch.purchase_date is not None
@@ -208,6 +217,40 @@ def count_items_by_category(session: Session) -> dict[str, int]:
         item_counts[item.category] = item_counts.get(item.category, 0) + 1
 
     return item_counts
+
+
+def ensure_item_batch_public_ids() -> None:
+    with engine.begin() as connection:
+        columns = connection.execute(text("PRAGMA table_info(itembatch)")).fetchall()
+        column_names = {column[1] for column in columns}
+
+        if "public_id" not in column_names:
+            connection.execute(text("ALTER TABLE itembatch ADD COLUMN public_id VARCHAR"))
+
+        rows = connection.execute(
+            text("SELECT id FROM itembatch WHERE public_id IS NULL OR public_id = ''")
+        ).fetchall()
+
+        for row in rows:
+            connection.execute(
+                text("UPDATE itembatch SET public_id = :public_id WHERE id = :id"),
+                {"public_id": uuid4().hex, "id": row[0]},
+            )
+
+        connection.execute(
+            text(
+                "UPDATE itembatch "
+                "SET public_id = lower(replace(public_id, '-', '')) "
+                "WHERE public_id LIKE '%-%'"
+            )
+        )
+
+        connection.execute(
+            text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS "
+                "ix_itembatch_public_id ON itembatch (public_id)"
+            )
+        )
 
 
 def seed_locations_from_items() -> None:
@@ -274,7 +317,7 @@ def seed_item_batches_from_items() -> None:
             session.add(
                 ItemBatch(
                     item_id=item.id,
-                    quantity=item.quantity,
+                    quantity=int(item.quantity),
                     purchase_date=item.purchase_date,
                     expiry_date=item.expiry_date,
                 )
@@ -378,7 +421,7 @@ def create_item(
     save_action: str = Form("detail"),
     category: str = Form("food"),
     storage_type: StorageType = Form(StorageType.OTHER),
-    quantity: float = Form(1),
+    quantity: int = Form(0),
     unit: str = Form("pcs"),
     storage_location: str = Form("unknown"),
     storage_area: Optional[str] = Form(None),
@@ -412,12 +455,6 @@ def create_item(
     session.commit()
     session.refresh(item)
 
-    session.add(
-        ItemBatch(
-            item_id=item.id,
-            quantity=quantity,
-        )
-    )
     add_event(session, item, InventoryEventType.CREATED)
     session.commit()
 
@@ -616,7 +653,7 @@ def item_detail(
 def create_item_batch(
     item_id: UUID,
     session: Session = Depends(get_session),
-    quantity: float = Form(1),
+    quantity: int = Form(1),
     purchase_date: Optional[date] = Form(None),
     expiry_date: Optional[date] = Form(None),
 ):
@@ -643,16 +680,16 @@ def create_item_batch(
     return RedirectResponse(url=f"/items/{item.id}", status_code=303)
 
 
-@app.post("/items/{item_id}/batches/{batch_id}/delete")
+@app.post("/items/{item_id}/batches/{batch_public_id}/delete")
 def delete_item_batch(
     item_id: UUID,
-    batch_id: int,
+    batch_public_id: UUID,
     session: Session = Depends(get_session),
 ):
     item = get_item_or_404(session, item_id)
-    batch = session.get(ItemBatch, batch_id)
+    batch = get_batch_or_404(session, batch_public_id)
 
-    if not batch or batch.item_id != item.id:
+    if batch.item_id != item.id:
         raise HTTPException(status_code=404, detail="Batch not found")
 
     session.delete(batch)
@@ -679,13 +716,57 @@ def item_from_qr(
     return RedirectResponse(url=f"/items/{item.id}", status_code=303)
 
 
-@app.get("/b/{batch_id}", response_class=HTMLResponse)
+@app.get("/b/{batch_public_id}", response_class=HTMLResponse)
 def batch_from_qr(
-    batch_id: int,
+    batch_public_id: UUID,
+    request: Request,
     session: Session = Depends(get_session),
 ):
-    batch = get_batch_or_404(session, batch_id)
-    return RedirectResponse(url=f"/items/{batch.item_id}#batch-{batch.id}", status_code=303)
+    batch = get_batch_or_404(session, batch_public_id)
+    item = get_item_or_404(session, batch.item_id)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="batch_scan.html",
+        context={
+            "item": item,
+            "batch": batch,
+        },
+    )
+
+
+@app.post("/b/{batch_public_id}/consume")
+def consume_batch_from_qr(
+    batch_public_id: UUID,
+    session: Session = Depends(get_session),
+):
+    batch = get_batch_or_404(session, batch_public_id)
+    item = get_item_or_404(session, batch.item_id)
+    old_quantity = int(batch.quantity)
+
+    if old_quantity <= 1:
+        session.delete(batch)
+        redirect_url = f"/items/{item.id}"
+        new_quantity = 0
+    else:
+        batch.quantity = old_quantity - 1
+        batch.updated_at = datetime.utcnow()
+        session.add(batch)
+        redirect_url = f"/b/{batch.public_id}"
+        new_quantity = int(batch.quantity)
+
+    sync_item_batch_summary(session, item)
+    add_event(
+        session,
+        item,
+        InventoryEventType.QUANTITY_CHANGED,
+        note="Consumed 1 from batch",
+        old_value=str(old_quantity),
+        new_value=str(new_quantity),
+    )
+    session.commit()
+
+    return RedirectResponse(url=redirect_url, status_code=303)
 
 
 @app.get("/items/{item_id}/edit", response_class=HTMLResponse)
@@ -714,7 +795,7 @@ def update_item(
     name: str = Form(...),
     category: str = Form("food"),
     storage_type: StorageType = Form(StorageType.OTHER),
-    quantity: float = Form(1),
+    quantity: int = Form(1),
     unit: str = Form("pcs"),
     storage_location: str = Form("unknown"),
     storage_area: Optional[str] = Form(None),
@@ -815,7 +896,9 @@ def item_qr_code(
 ):
     item = get_item_or_404(session, item_id)
     batch = get_primary_item_batch(session, item)
-    qr_url = f"{BASE_URL}/b/{batch.id}" if batch else f"{BASE_URL}/i/{item.qr_token}"
+    qr_url = (
+        f"{BASE_URL}/b/{batch.public_id}" if batch else f"{BASE_URL}/i/{item.qr_token}"
+    )
 
     img = qrcode.make(qr_url)
     buffer = BytesIO()
@@ -825,19 +908,19 @@ def item_qr_code(
     return StreamingResponse(buffer, media_type="image/png")
 
 
-@app.get("/items/{item_id}/batches/{batch_id}/qr")
+@app.get("/items/{item_id}/batches/{batch_public_id}/qr")
 def item_batch_qr_code(
     item_id: UUID,
-    batch_id: int,
+    batch_public_id: UUID,
     session: Session = Depends(get_session),
 ):
     item = get_item_or_404(session, item_id)
-    batch = get_batch_or_404(session, batch_id)
+    batch = get_batch_or_404(session, batch_public_id)
 
     if batch.item_id != item.id:
         raise HTTPException(status_code=404, detail="Batch not found")
 
-    img = qrcode.make(f"{BASE_URL}/b/{batch.id}")
+    img = qrcode.make(f"{BASE_URL}/b/{batch.public_id}")
     buffer = BytesIO()
     img.save(buffer, format="PNG")
     buffer.seek(0)
@@ -863,7 +946,11 @@ def item_label(
         context={
             "item": item,
             "batch": batch,
-            "qr_url": f"{BASE_URL}/b/{batch.id}" if batch else f"{BASE_URL}/i/{item.qr_token}",
+            "qr_url": (
+                f"{BASE_URL}/b/{batch.public_id}"
+                if batch
+                else f"{BASE_URL}/i/{item.qr_token}"
+            ),
         },
     )
 
@@ -872,7 +959,7 @@ def item_label(
 def print_labels(
     request: Request,
     session: Session = Depends(get_session),
-    batch_id: Optional[list[int]] = Query(None),
+    batch_id: Optional[list[UUID]] = Query(None),
     selected: bool = False,
 ):
     all_batches = list_print_label_batches(session)
@@ -880,7 +967,7 @@ def print_labels(
 
     if selected:
         batches = [
-            entry for entry in all_batches if entry["batch"].id in selected_ids
+            entry for entry in all_batches if entry["batch"].public_id in selected_ids
         ]
     else:
         batches = all_batches

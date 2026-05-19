@@ -68,7 +68,7 @@ class Item(SQLModel, table=True):
     category: str = Field(default="food", index=True)
     status: ItemStatus = Field(default=ItemStatus.ACTIVE, index=True)
 
-    quantity: float = Field(default=1)
+    quantity: int = Field(default=0)
     unit: str = Field(default="pcs")
 
     purchase_date: Optional[date] = Field(default=None, index=True)
@@ -97,10 +97,16 @@ class Item(SQLModel, table=True):
 
 class ItemBatch(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    public_id: UUID = Field(
+        default_factory=uuid4,
+        index=True,
+        unique=True,
+        nullable=False,
+    )
 
     item_id: UUID = Field(index=True, foreign_key="item.id")
 
-    quantity: float = Field(default=1)
+    quantity: int = Field(default=1)
     purchase_date: Optional[date] = Field(default=None, index=True)
     expiry_date: Optional[date] = Field(default=None, index=True)
 

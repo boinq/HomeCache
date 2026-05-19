@@ -10,7 +10,7 @@
                 <p class="eyebrow">{{ item.category }}</p>
                 <h2>{{ item.name }}</h2>
                 <p class="meta">
-                    {{ item.quantity }} {{ item.unit }}
+                    {{ item.quantity | int }} {{ item.unit }}
                     · {{ item.status }}
                 </p>
             </div>
@@ -167,14 +167,14 @@
             {% if batches %}
                 <div class="batch-list">
                     {% for batch in batches %}
-                        <article class="batch-row" id="batch-{{ batch.id }}">
-                            <a class="batch-qr" href="/items/{{ item.id }}/batches/{{ batch.id }}/qr" target="_blank" title="Open batch QR">
-                                <img src="/items/{{ item.id }}/batches/{{ batch.id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.id }}">
+                        <article class="batch-row" id="batch-{{ batch.public_id }}">
+                            <a class="batch-qr" href="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" target="_blank" title="Open batch QR">
+                                <img src="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.public_id }}">
                             </a>
 
                             <div>
                                 <span class="batch-label">Quantity</span>
-                                <strong>{{ batch.quantity }} {{ item.unit }}</strong>
+                                <strong>{{ batch.quantity | int }} {{ item.unit }}</strong>
                             </div>
 
                             <div>
@@ -195,12 +195,14 @@
                                 {% endif %}
                             </div>
 
-                            <form method="post" action="/items/{{ item.id }}/batches/{{ batch.id }}/delete">
+                            <form method="post" action="/items/{{ item.id }}/batches/{{ batch.public_id }}/delete">
                                 <button class="button small danger" type="submit">Remove</button>
                             </form>
                         </article>
                     {% endfor %}
                 </div>
+            {% else %}
+                <p class="batch-empty">Nothing in stock.</p>
             {% endif %}
 
             <form class="batch-form" method="post" action="/items/{{ item.id }}/batches">
@@ -211,7 +213,7 @@
                         name="quantity"
                         type="number"
                         min="0"
-                        step="0.01"
+                        step="1"
                         value="1"
                     >
                 </div>

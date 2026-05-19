@@ -76,28 +76,30 @@
                         </select>
                     </div>
 
-                    <div class="field">
-                        <label for="quantity">Quantity</label>
-                        <input
-                            id="quantity"
-                            name="quantity"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value="{% if item %}{{ item.quantity }}{% else %}1{% endif %}"
-                        >
-                    </div>
+                    {% if item %}
+                        <div class="field">
+                            <label for="quantity">Quantity</label>
+                            <input
+                                id="quantity"
+                                name="quantity"
+                                type="number"
+                                min="0"
+                                step="1"
+                                value="{{ item.quantity | int }}"
+                            >
+                        </div>
 
-                    <div class="field">
-                        <label for="unit">Unit</label>
-                        <input
-                            id="unit"
-                            name="unit"
-                            type="text"
-                            value="{% if item %}{{ item.unit }}{% else %}pcs{% endif %}"
-                            placeholder="pcs, kg, g, L..."
-                        >
-                    </div>
+                        <div class="field">
+                            <label for="unit">Unit</label>
+                            <input
+                                id="unit"
+                                name="unit"
+                                type="text"
+                                value="{{ item.unit }}"
+                                placeholder="pcs, kg, g, L..."
+                            >
+                        </div>
+                    {% endif %}
                 </div>
             </section>
 

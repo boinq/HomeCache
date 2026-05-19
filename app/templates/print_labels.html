@@ -31,26 +31,26 @@
                 {% for entry in all_items %}
                     {% set item = entry.item %}
                     {% set batch = entry.batch %}
-                    <article class="sheet-label {% if not selected or batch.id|string in selected_batch_ids %}is-print-selected{% endif %}">
+                    <article class="sheet-label {% if not selected or batch.public_id|string in selected_batch_ids %}is-print-selected{% endif %}">
                         <label class="sheet-label-select no-print">
                             <input
                                 type="checkbox"
                                 name="batch_id"
-                                value="{{ batch.id }}"
-                                {% if not selected or batch.id|string in selected_batch_ids %}checked{% endif %}
+                                value="{{ batch.public_id }}"
+                                {% if not selected or batch.public_id|string in selected_batch_ids %}checked{% endif %}
                             >
                             <span>Print</span>
                         </label>
 
                         <div class="sheet-label-qr">
-                            <img src="/items/{{ item.id }}/batches/{{ batch.id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.id }}">
+                            <img src="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.public_id }}">
                         </div>
 
                         <div class="sheet-label-info">
                             <h3>{{ item.name }}</h3>
 
                             <p>
-                                {{ batch.quantity }} {{ item.unit }}
+                                {{ batch.quantity | int }} {{ item.unit }}
                                 &middot; {{ item.category }}
                             </p>
 
