@@ -38,6 +38,8 @@
             >
         </div>
 
+        <input type="hidden" name="view" value="{{ view_mode }}">
+
         <div class="filter-actions">
             <button class="button" type="submit">Filter</button>
             <a class="button ghost" href="/items">Clear</a>
@@ -57,6 +59,7 @@
         <input type="hidden" name="q" value="{{ q }}">
         <input type="hidden" name="location" value="{{ location }}">
         <input type="hidden" name="category" value="{{ category }}">
+        <input type="hidden" name="view" value="{{ view_mode }}">
 
         <div class="field">
             <select id="sort_by" name="sort_by" aria-label="Sort by" data-auto-submit>
@@ -72,6 +75,31 @@
                 <option value="desc" {% if sort_dir == "desc" %}selected{% endif %}>DESC</option>
             </select>
         </div>
+    </form>
+
+    <form class="view-form" method="get" action="/items">
+        <input type="hidden" name="q" value="{{ q }}">
+        <input type="hidden" name="location" value="{{ location }}">
+        <input type="hidden" name="category" value="{{ category }}">
+        <input type="hidden" name="sort_by" value="{{ sort_by }}">
+        <input type="hidden" name="sort_dir" value="{{ sort_dir }}">
+
+        <button
+            class="button small {% if view_mode == 'cards' %}secondary{% else %}ghost{% endif %}"
+            type="submit"
+            name="view"
+            value="cards"
+        >
+            Cards
+        </button>
+        <button
+            class="button small {% if view_mode == 'list' %}secondary{% else %}ghost{% endif %}"
+            type="submit"
+            name="view"
+            value="list"
+        >
+            List
+        </button>
     </form>
 </section>
 
@@ -94,7 +122,7 @@
                     </span>
                 </div>
 
-                <div class="item-grid" data-category-content>
+                <div class="item-grid item-grid-{{ view_mode }}" data-category-content>
                     {% for item in group.category_items %}
                         <article class="item-card">
                             <div class="item-card-main">

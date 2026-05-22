@@ -53,6 +53,7 @@ def on_startup() -> None:
     seed_locations_from_items()
     seed_categories_from_items()
     seed_item_batches_from_items()
+    remove_zero_quantity_batches()
 
 
 def get_item_or_404(session: Session, item_id: UUID) -> Item:
@@ -139,6 +140,7 @@ def list_item_batches(session: Session, item_id: UUID) -> list[ItemBatch]:
     statement = (
         select(ItemBatch)
         .where(ItemBatch.item_id == item_id)
+        .where(ItemBatch.quantity > 0)
         .order_by(ItemBatch.expiry_date, ItemBatch.purchase_date, ItemBatch.public_id)
     )
     return session.exec(statement).all()
@@ -157,6 +159,7 @@ def get_primary_item_batch(session: Session, item: Item) -> Optional[ItemBatch]:
     return session.exec(
         select(ItemBatch)
         .where(ItemBatch.item_id == item.id)
+        .where(ItemBatch.quantity > 0)
         .order_by(ItemBatch.expiry_date, ItemBatch.purchase_date, ItemBatch.public_id)
     ).first()
 
@@ -166,6 +169,7 @@ def list_print_label_batches(session: Session) -> list[dict]:
         select(ItemBatch, Item)
         .join(Item, ItemBatch.item_id == Item.id)
         .where(Item.status == ItemStatus.ACTIVE)
+        .where(ItemBatch.quantity > 0)
         .order_by(
             Item.storage_location,
             Item.name,
@@ -337,6 +341,11 @@ def seed_item_batches_from_items() -> None:
             if existing_batch:
                 continue
 
+            if int(item.quantity) <= 0:
+                sync_item_batch_summary(session, item, [])
+                changed = True
+                continue
+
             session.add(
                 ItemBatch(
                     item_id=item.id,
@@ -351,6 +360,30 @@ def seed_item_batches_from_items() -> None:
 
         if changed:
             session.commit()
+
+
+def remove_zero_quantity_batches() -> None:
+    with Session(engine) as session:
+        zero_batches = session.exec(
+            select(ItemBatch).where(ItemBatch.quantity <= 0)
+        ).all()
+
+        if not zero_batches:
+            return
+
+        item_ids = {batch.item_id for batch in zero_batches}
+
+        for batch in zero_batches:
+            session.delete(batch)
+
+        session.commit()
+
+        for item_id in item_ids:
+            item = session.get(Item, item_id)
+            if item:
+                sync_item_batch_summary(session, item)
+
+        session.commit()
 
 
 def add_event(
@@ -386,6 +419,7 @@ def list_items(
     category: Optional[str] = None,
     sort_by: Optional[str] = None,
     sort_dir: str = "asc",
+    view: str = "cards",
 ):
     statement = select(Item).where(Item.status == ItemStatus.ACTIVE)
 
@@ -404,6 +438,7 @@ def list_items(
     }
     sort_column = sortable_fields.get(sort_by or "")
     sort_dir = "desc" if sort_dir == "desc" else "asc"
+    view_mode = "list" if view == "list" else "cards"
 
     if sort_column is not None:
         sort_expression = sort_column.desc() if sort_dir == "desc" else sort_column.asc()
@@ -435,6 +470,7 @@ def list_items(
             "category": category or "",
             "sort_by": sort_by or "",
             "sort_dir": sort_dir,
+            "view_mode": view_mode,
         },
     )
 
@@ -695,6 +731,12 @@ def create_item_batch(
     frozen_date: Optional[date] = Form(None),
 ):
     item = get_item_or_404(session, item_id)
+
+    if quantity <= 0:
+        sync_item_batch_summary(session, item)
+        session.commit()
+        return RedirectResponse(url=f"/items/{item.id}", status_code=303)
+
     batch = ItemBatch(
         item_id=item.id,
         quantity=quantity,
@@ -737,6 +779,21 @@ def update_item_batch(
         raise HTTPException(status_code=404, detail="Batch not found")
 
     old_quantity = int(batch.quantity)
+
+    if quantity <= 0:
+        session.delete(batch)
+        sync_item_batch_summary(session, item)
+        add_event(
+            session,
+            item,
+            InventoryEventType.QUANTITY_CHANGED,
+            note="Removed zero quantity batch",
+            old_value=str(old_quantity),
+            new_value="0",
+        )
+        session.commit()
+        return RedirectResponse(url=f"/items/{item.id}", status_code=303)
+
     batch.quantity = quantity
     batch.purchase_date = purchase_date
     batch.expiry_date = expiry_date
@@ -909,12 +966,18 @@ def update_item(
 
     batches = list_item_batches(session, item.id)
     if len(batches) == 1:
-        batches[0].quantity = quantity
-        batches[0].updated_at = datetime.utcnow()
-        session.add(batches[0])
-        sync_item_batch_summary(session, item, batches)
+        if quantity <= 0:
+            session.delete(batches[0])
+            sync_item_batch_summary(session, item, [])
+        else:
+            batches[0].quantity = quantity
+            batches[0].updated_at = datetime.utcnow()
+            session.add(batches[0])
+            sync_item_batch_summary(session, item, batches)
     elif len(batches) > 1:
         sync_item_batch_summary(session, item, batches)
+    else:
+        sync_item_batch_summary(session, item, [])
 
     session.add(item)
     add_event(session, item, InventoryEventType.UPDATED)

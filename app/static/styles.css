@@ -328,6 +328,10 @@ textarea:focus {
 }
 
 .sort-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
     margin: -0.2rem 0 1rem;
 }
 
@@ -349,6 +353,12 @@ textarea:focus {
     background: var(--panel-soft);
 }
 
+.view-form {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
 .item-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
@@ -357,6 +367,11 @@ textarea:focus {
 
 .item-grid[hidden] {
     display: none;
+}
+
+.item-grid-list {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
 }
 
 .item-category-list {
@@ -416,6 +431,35 @@ textarea:focus {
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     padding: 1rem;
+}
+
+.item-grid-list .item-card {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(260px, 1.4fr) auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.85rem 1rem;
+}
+
+.item-grid-list .item-details {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.item-grid-list .item-details div {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+}
+
+.item-grid-list .notes {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+.item-grid-list .card-actions {
+    margin: 0;
+    justify-content: flex-end;
 }
 
 .item-card-main {
@@ -1352,8 +1396,22 @@ textarea {
         grid-template-columns: 1fr;
     }
 
+    .sort-panel {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
     .sort-form {
         grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    .view-form {
+        width: 100%;
+    }
+
+    .view-form .button {
+        flex: 1;
     }
 
     .filter-actions {
@@ -1373,6 +1431,14 @@ textarea {
 
     .item-card-main {
         align-items: flex-start;
+    }
+
+    .item-grid-list .item-card {
+        grid-template-columns: 1fr;
+    }
+
+    .item-grid-list .card-actions {
+        justify-content: flex-start;
     }
 
     .qr-thumb {
