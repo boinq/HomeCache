@@ -76,70 +76,85 @@
 </section>
 
 {% if items %}
-    <section class="item-grid">
-        {% for item in items %}
-            <article class="item-card">
-                <div class="item-card-main">
-                    <div>
-                        <h3>
-                            <a href="/items/{{ item.id }}">{{ item.name }}</a>
-                        </h3>
-
-                        <p class="meta">
-                            {{ item.quantity | int }} {{ item.unit }}
-                            · {{ item.category }}
-                        </p>
-                    </div>
-
-                    <a class="qr-thumb" href="/items/{{ item.id }}/label" title="View label">
-                        <img src="/items/{{ item.id }}/qr" alt="QR code for {{ item.name }}">
-                    </a>
+    <section class="item-category-list">
+        {% for group in item_groups %}
+            <section class="item-category-group">
+                <div class="item-category-header">
+                    <button
+                        class="item-category-toggle"
+                        type="button"
+                        aria-expanded="true"
+                        data-category-toggle
+                    >
+                        <span class="item-category-arrow" aria-hidden="true"></span>
+                        <span>{{ group.category }}</span>
+                    </button>
+                    <span class="count">
+                        {{ group.category_items | length }} item{% if group.category_items | length != 1 %}s{% endif %}
+                    </span>
                 </div>
 
-                <dl class="item-details">
-                    <div>
-                        <dt>Location</dt>
-                        <dd>
-                            {{ item.storage_location }}
-                            {% if item.storage_area %}
-                                / {{ item.storage_area }}
+                <div class="item-grid" data-category-content>
+                    {% for item in group.category_items %}
+                        <article class="item-card">
+                            <div class="item-card-main">
+                                <div>
+                                    <h3>
+                                        <a href="/items/{{ item.id }}">{{ item.name }}</a>
+                                    </h3>
+
+                                    <p class="meta">
+                                        {{ item.quantity | int }} {{ item.unit }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <dl class="item-details">
+                                <div>
+                                    <dt>Location</dt>
+                                    <dd>
+                                        {{ item.storage_location }}
+                                        {% if item.storage_area %}
+                                            / {{ item.storage_area }}
+                                        {% endif %}
+                                    </dd>
+                                </div>
+
+                                <div>
+                                    <dt>Purchased</dt>
+                                    <dd>
+                                        {% if item.purchase_date %}
+                                            {{ item.purchase_date }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </dd>
+                                </div>
+
+                                <div>
+                                    <dt>Expires</dt>
+                                    <dd>
+                                        {% if item.expiry_date %}
+                                            <span class="expiry">{{ item.expiry_date }}</span>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </dd>
+                                </div>
+                            </dl>
+
+                            {% if item.notes %}
+                                <p class="notes">{{ item.notes }}</p>
                             {% endif %}
-                        </dd>
-                    </div>
 
-                    <div>
-                        <dt>Purchased</dt>
-                        <dd>
-                            {% if item.purchase_date %}
-                                {{ item.purchase_date }}
-                            {% else %}
-                                —
-                            {% endif %}
-                        </dd>
-                    </div>
-
-                    <div>
-                        <dt>Expires</dt>
-                        <dd>
-                            {% if item.expiry_date %}
-                                <span class="expiry">{{ item.expiry_date }}</span>
-                            {% else %}
-                                —
-                            {% endif %}
-                        </dd>
-                    </div>
-                </dl>
-
-                {% if item.notes %}
-                    <p class="notes">{{ item.notes }}</p>
-                {% endif %}
-
-                <div class="card-actions">
-                    <a class="button small secondary" href="/items/{{ item.id }}">View</a>
-                    <a class="button small ghost" href="/items/{{ item.id }}/edit">Edit</a>
-                    <a class="button small ghost" href="/items/{{ item.id }}/label">Label</a>
+                            <div class="card-actions">
+                                <a class="button small secondary" href="/items/{{ item.id }}">View</a>
+                                <a class="button small ghost" href="/items/{{ item.id }}/edit">Edit</a>
+                            </div>
+                        </article>
+                    {% endfor %}
                 </div>
-            </article>
+            </section>
         {% endfor %}
     </section>
 {% else %}
@@ -149,10 +164,23 @@
         <a class="button" href="/items/new">Add item</a>
     </section>
 {% endif %}
+
 <script>
     document.querySelectorAll("[data-auto-submit]").forEach((input) => {
         input.addEventListener("change", () => {
             input.form.requestSubmit();
+        });
+    });
+
+    document.querySelectorAll("[data-category-toggle]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const group = button.closest(".item-category-group");
+            const content = group.querySelector("[data-category-content]");
+            const isExpanded = button.getAttribute("aria-expanded") === "true";
+
+            button.setAttribute("aria-expanded", String(!isExpanded));
+            content.hidden = isExpanded;
+            group.classList.toggle("is-collapsed", isExpanded);
         });
     });
 </script>

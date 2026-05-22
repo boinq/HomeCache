@@ -11,18 +11,14 @@
 
     <article class="print-label">
         <div class="print-label-qr">
-            {% if batch %}
-                <img src="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.public_id }}">
-            {% else %}
-                <img src="/items/{{ item.id }}/qr" alt="QR code for {{ item.name }}">
-            {% endif %}
+            <img src="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.public_id }}">
         </div>
 
         <div class="print-label-info">
             <h2>{{ item.name }}</h2>
 
             <p>
-                {% if batch %}{{ batch.quantity | int }}{% else %}{{ item.quantity | int }}{% endif %} {{ item.unit }}
+                {{ batch.quantity | int }} {{ item.unit }}
                 &middot; {{ item.category }}
             </p>
 
@@ -34,17 +30,31 @@
                 {% endif %}
             </p>
 
-            {% if batch and batch.expiry_date %}
+            {% if batch.expiry_date %}
                 <p>
                     <strong>Expires:</strong>
                     {{ batch.expiry_date }}
                 </p>
             {% endif %}
 
-            {% if batch and batch.purchase_date %}
+            {% if batch.purchase_date %}
                 <p>
                     <strong>Purchased:</strong>
                     {{ batch.purchase_date }}
+                </p>
+            {% endif %}
+
+            {% if batch.opened_date %}
+                <p>
+                    <strong>Opened:</strong>
+                    {{ batch.opened_date }}
+                </p>
+            {% endif %}
+
+            {% if batch.frozen_date %}
+                <p>
+                    <strong>Frozen:</strong>
+                    {{ batch.frozen_date }}
                 </p>
             {% endif %}
         </div>

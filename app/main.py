@@ -43,6 +43,7 @@ app = FastAPI(title="HomeCache")
 templates = Jinja2Templates(directory="app/templates")
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/assets", StaticFiles(directory="app/assets"), name="assets")
 
 
 @app.on_event("startup")
@@ -178,6 +179,22 @@ def list_print_label_batches(session: Session) -> list[dict]:
     ]
 
 
+def list_print_label_item_groups(session: Session) -> list[dict]:
+    items = session.exec(
+        select(Item)
+        .where(Item.status == ItemStatus.ACTIVE)
+        .order_by(Item.storage_location, Item.name)
+    ).all()
+
+    return [
+        {
+            "item": item,
+            "batches": list_item_batches(session, item.id),
+        }
+        for item in items
+    ]
+
+
 def sync_item_batch_summary(
     session: Session,
     item: Item,
@@ -226,6 +243,12 @@ def ensure_item_batch_public_ids() -> None:
 
         if "public_id" not in column_names:
             connection.execute(text("ALTER TABLE itembatch ADD COLUMN public_id VARCHAR"))
+
+        for date_column in ["opened_date", "frozen_date"]:
+            if date_column not in column_names:
+                connection.execute(
+                    text(f"ALTER TABLE itembatch ADD COLUMN {date_column} DATE")
+                )
 
         rows = connection.execute(
             text("SELECT id FROM itembatch WHERE public_id IS NULL OR public_id = ''")
@@ -320,6 +343,8 @@ def seed_item_batches_from_items() -> None:
                     quantity=int(item.quantity),
                     purchase_date=item.purchase_date,
                     expiry_date=item.expiry_date,
+                    opened_date=item.opened_date,
+                    frozen_date=item.frozen_date,
                 )
             )
             changed = True
@@ -387,12 +412,24 @@ def list_items(
         statement = statement.order_by(Item.expiry_date, Item.name)
 
     items = session.exec(statement).all()
+    item_groups = [
+        {
+            "category": category_name,
+            "category_items": [
+                item
+                for item in items
+                if (item.category or "other").lower() == category_name.lower()
+            ],
+        }
+        for category_name in sorted({item.category or "other" for item in items})
+    ]
 
     return templates.TemplateResponse(
         request=request,
         name="item_list.html",
         context={
             "items": items,
+            "item_groups": item_groups,
             "q": q or "",
             "location": location or "",
             "category": category or "",
@@ -635,7 +672,6 @@ def item_detail(
     session: Session = Depends(get_session),
 ):
     item = get_item_or_404(session, item_id)
-    qr_url = f"{BASE_URL}/i/{item.qr_token}"
     batches = list_item_batches(session, item.id)
 
     return templates.TemplateResponse(
@@ -644,7 +680,6 @@ def item_detail(
         context={
             "item": item,
             "batches": batches,
-            "qr_url": qr_url,
         },
     )
 
@@ -656,6 +691,8 @@ def create_item_batch(
     quantity: int = Form(1),
     purchase_date: Optional[date] = Form(None),
     expiry_date: Optional[date] = Form(None),
+    opened_date: Optional[date] = Form(None),
+    frozen_date: Optional[date] = Form(None),
 ):
     item = get_item_or_404(session, item_id)
     batch = ItemBatch(
@@ -663,6 +700,8 @@ def create_item_batch(
         quantity=quantity,
         purchase_date=purchase_date,
         expiry_date=expiry_date,
+        opened_date=opened_date,
+        frozen_date=frozen_date,
     )
 
     session.add(batch)
@@ -678,6 +717,49 @@ def create_item_batch(
     session.commit()
 
     return RedirectResponse(url=f"/items/{item.id}", status_code=303)
+
+
+@app.post("/items/{item_id}/batches/{batch_public_id}/edit")
+def update_item_batch(
+    item_id: UUID,
+    batch_public_id: UUID,
+    session: Session = Depends(get_session),
+    quantity: int = Form(1),
+    purchase_date: Optional[date] = Form(None),
+    expiry_date: Optional[date] = Form(None),
+    opened_date: Optional[date] = Form(None),
+    frozen_date: Optional[date] = Form(None),
+):
+    item = get_item_or_404(session, item_id)
+    batch = get_batch_or_404(session, batch_public_id)
+
+    if batch.item_id != item.id:
+        raise HTTPException(status_code=404, detail="Batch not found")
+
+    old_quantity = int(batch.quantity)
+    batch.quantity = quantity
+    batch.purchase_date = purchase_date
+    batch.expiry_date = expiry_date
+    batch.opened_date = opened_date
+    batch.frozen_date = frozen_date
+    batch.updated_at = datetime.utcnow()
+
+    session.add(batch)
+    sync_item_batch_summary(session, item)
+    add_event(
+        session,
+        item,
+        InventoryEventType.QUANTITY_CHANGED,
+        note="Updated item batch",
+        old_value=str(old_quantity),
+        new_value=str(quantity),
+    )
+    session.commit()
+
+    return RedirectResponse(
+        url=f"/items/{item.id}#batch-{batch.public_id}",
+        status_code=303,
+    )
 
 
 @app.post("/items/{item_id}/batches/{batch_public_id}/delete")
@@ -889,6 +971,32 @@ def mark_discarded(
     return RedirectResponse(url="/items", status_code=303)
 
 
+@app.post("/items/{item_id}/delete")
+def delete_item(
+    item_id: UUID,
+    session: Session = Depends(get_session),
+):
+    item = get_item_or_404(session, item_id)
+
+    batches = session.exec(
+        select(ItemBatch).where(ItemBatch.item_id == item.id)
+    ).all()
+    events = session.exec(
+        select(InventoryEvent).where(InventoryEvent.item_id == item.id)
+    ).all()
+
+    for batch in batches:
+        session.delete(batch)
+
+    for event in events:
+        session.delete(event)
+
+    session.delete(item)
+    session.commit()
+
+    return RedirectResponse(url="/items", status_code=303)
+
+
 @app.get("/items/{item_id}/qr")
 def item_qr_code(
     item_id: UUID,
@@ -896,9 +1004,10 @@ def item_qr_code(
 ):
     item = get_item_or_404(session, item_id)
     batch = get_primary_item_batch(session, item)
-    qr_url = (
-        f"{BASE_URL}/b/{batch.public_id}" if batch else f"{BASE_URL}/i/{item.qr_token}"
-    )
+    if not batch:
+        raise HTTPException(status_code=404, detail="No batch QR available")
+
+    qr_url = f"{BASE_URL}/b/{batch.public_id}"
 
     img = qrcode.make(qr_url)
     buffer = BytesIO()
@@ -937,6 +1046,9 @@ def item_label(
     item = get_item_or_404(session, item_id)
     batch = get_primary_item_batch(session, item)
 
+    if not batch:
+        raise HTTPException(status_code=404, detail="No batch label available")
+
     add_event(session, item, InventoryEventType.LABEL_PRINTED)
     session.commit()
 
@@ -946,11 +1058,7 @@ def item_label(
         context={
             "item": item,
             "batch": batch,
-            "qr_url": (
-                f"{BASE_URL}/b/{batch.public_id}"
-                if batch
-                else f"{BASE_URL}/i/{item.qr_token}"
-            ),
+            "qr_url": f"{BASE_URL}/b/{batch.public_id}",
         },
     )
 
@@ -962,7 +1070,12 @@ def print_labels(
     batch_id: Optional[list[UUID]] = Query(None),
     selected: bool = False,
 ):
-    all_batches = list_print_label_batches(session)
+    item_groups = list_print_label_item_groups(session)
+    all_batches = [
+        {"item": group["item"], "batch": batch}
+        for group in item_groups
+        for batch in group["batches"]
+    ]
     selected_ids = set(batch_id or [])
 
     if selected:
@@ -978,6 +1091,7 @@ def print_labels(
         context={
             "items": batches,
             "all_items": all_batches,
+            "item_groups": item_groups,
             "selected": selected,
             "selected_batch_ids": {str(batch_id) for batch_id in selected_ids},
         },

@@ -109,6 +109,8 @@ class ItemBatch(SQLModel, table=True):
     quantity: int = Field(default=1)
     purchase_date: Optional[date] = Field(default=None, index=True)
     expiry_date: Optional[date] = Field(default=None, index=True)
+    opened_date: Optional[date] = Field(default=None, index=True)
+    frozen_date: Optional[date] = Field(default=None, index=True)
 
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     updated_at: datetime = Field(default_factory=datetime.utcnow, index=True)

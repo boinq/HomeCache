@@ -56,6 +56,28 @@
                     {% endif %}
                 </dd>
             </div>
+
+            <div>
+                <dt>Opened</dt>
+                <dd>
+                    {% if batch.opened_date %}
+                        {{ batch.opened_date }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Frozen</dt>
+                <dd>
+                    {% if batch.frozen_date %}
+                        {{ batch.frozen_date }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </dd>
+            </div>
         </dl>
 
         <div class="scan-actions">

@@ -9,13 +9,17 @@
             <h2>Print labels</h2>
             <p class="subtitle">
                 <span data-selected-count>{{ items | length }}</span>
-                selected item<span data-selected-plural>{% if items | length != 1 %}s{% endif %}</span>.
+                selected label<span data-selected-plural>{% if items | length != 1 %}s{% endif %}</span>.
             </p>
         </div>
 
         <div class="toolbar-actions">
             <a class="button ghost" href="/items">Back to items</a>
             {% if all_items %}
+                <select class="print-format-select" aria-label="Print format" data-print-format>
+                    <option value="a4">A4 labels</option>
+                    <option value="brother">Brother QL-700</option>
+                </select>
                 <button class="button ghost" type="button" data-label-select="all">All</button>
                 <button class="button ghost" type="button" data-label-select="none">None</button>
                 <button class="button secondary" type="submit" form="label-print-form">Apply selection</button>
@@ -24,66 +28,110 @@
         </div>
     </div>
 
-    {% if all_items %}
+    {% if item_groups %}
         <form id="label-print-form" action="/print-labels" method="get">
             <input type="hidden" name="selected" value="true">
             <section class="label-sheet">
-                {% for entry in all_items %}
-                    {% set item = entry.item %}
-                    {% set batch = entry.batch %}
-                    <article class="sheet-label {% if not selected or batch.public_id|string in selected_batch_ids %}is-print-selected{% endif %}">
-                        <label class="sheet-label-select no-print">
-                            <input
-                                type="checkbox"
-                                name="batch_id"
-                                value="{{ batch.public_id }}"
-                                {% if not selected or batch.public_id|string in selected_batch_ids %}checked{% endif %}
-                            >
-                            <span>Print</span>
-                        </label>
-
-                        <div class="sheet-label-qr">
-                            <img src="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.public_id }}">
-                        </div>
-
-                        <div class="sheet-label-info">
-                            <h3>{{ item.name }}</h3>
-
-                            <p>
-                                {{ batch.quantity | int }} {{ item.unit }}
-                                &middot; {{ item.category }}
-                            </p>
-
-                            <p>
-                                <strong>Location:</strong>
-                                {{ item.storage_location }}
-                                {% if item.storage_area %}
-                                    / {{ item.storage_area }}
-                                {% endif %}
-                            </p>
-
-                            {% if item.container %}
-                                <p>
-                                    <strong>Container:</strong>
-                                    {{ item.container }}
+                {% for group in item_groups %}
+                    {% set item = group.item %}
+                    <section class="print-label-item">
+                        <div class="print-label-item-header no-print">
+                            <div>
+                                <h3>{{ item.name }}</h3>
+                                <p class="subtitle">
+                                    {{ group.batches | length }} batch{% if group.batches | length != 1 %}es{% endif %}
+                                    &middot; {{ item.storage_location }}
                                 </p>
-                            {% endif %}
+                            </div>
 
-                            {% if batch.purchase_date %}
-                                <p>
-                                    <strong>Purchased:</strong>
-                                    {{ batch.purchase_date }}
-                                </p>
-                            {% endif %}
-
-                            {% if batch.expiry_date %}
-                                <p>
-                                    <strong>Expires:</strong>
-                                    {{ batch.expiry_date }}
-                                </p>
+                            {% if group.batches %}
+                                <button class="button small ghost" type="button" data-label-select-item>Toggle item</button>
                             {% endif %}
                         </div>
-                    </article>
+
+                        {% if group.batches %}
+                            <div class="print-label-batches">
+                                {% for batch in group.batches %}
+                                    <article class="sheet-label {% if not selected or batch.public_id|string in selected_batch_ids %}is-print-selected{% endif %}">
+                                        <label class="sheet-label-select no-print">
+                                            <input
+                                                type="checkbox"
+                                                name="batch_id"
+                                                value="{{ batch.public_id }}"
+                                                {% if not selected or batch.public_id|string in selected_batch_ids %}checked{% endif %}
+                                            >
+                                            <span>Print</span>
+                                        </label>
+
+                                        <div class="sheet-label-qr">
+                                            <img src="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.public_id }}">
+                                        </div>
+
+                                        <div class="sheet-label-info">
+                                            <h3>{{ item.name }}</h3>
+
+                                            {% if item.brand %}
+                                                <p class="label-brand">
+                                                    <strong>Brand:</strong>
+                                                    {{ item.brand }}
+                                                </p>
+                                            {% endif %}
+
+                                            <p class="label-extra">
+                                                {{ batch.quantity | int }} {{ item.unit }}
+                                                &middot; {{ item.category }}
+                                            </p>
+
+                                            <p class="label-extra">
+                                                <strong>Location:</strong>
+                                                {{ item.storage_location }}
+                                                {% if item.storage_area %}
+                                                    / {{ item.storage_area }}
+                                                {% endif %}
+                                            </p>
+
+                                            {% if item.container %}
+                                                <p class="label-extra">
+                                                    <strong>Container:</strong>
+                                                    {{ item.container }}
+                                                </p>
+                                            {% endif %}
+
+                                            {% if batch.purchase_date %}
+                                                <p class="label-extra">
+                                                    <strong>Purchased:</strong>
+                                                    {{ batch.purchase_date }}
+                                                </p>
+                                            {% endif %}
+
+                                            {% if batch.expiry_date %}
+                                                <p class="label-expiry">
+                                                    <strong>Expires:</strong>
+                                                    {{ batch.expiry_date }}
+                                                </p>
+                                            {% endif %}
+
+                                            {% if batch.opened_date %}
+                                                <p class="label-extra">
+                                                    <strong>Opened:</strong>
+                                                    {{ batch.opened_date }}
+                                                </p>
+                                            {% endif %}
+
+                                            {% if batch.frozen_date %}
+                                                <p class="label-extra">
+                                                    <strong>Frozen:</strong>
+                                                    {{ batch.frozen_date }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </article>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="batch-empty no-print">Nothing in stock.</p>
+                        {% endif %}
+                    </section>
                 {% endfor %}
             </section>
         </form>
@@ -100,6 +148,24 @@
     const labelInputs = document.querySelectorAll(".sheet-label-select input");
     const selectedCount = document.querySelector("[data-selected-count]");
     const selectedPlural = document.querySelector("[data-selected-plural]");
+    const printFormat = document.querySelector("[data-print-format]");
+
+    function setPrintFormat(format) {
+        document.body.classList.toggle("print-format-brother", format === "brother");
+        document.body.classList.toggle("print-format-a4", format !== "brother");
+    }
+
+    const savedPrintFormat = localStorage.getItem("homecache-print-format") || "a4";
+    if (printFormat) {
+        printFormat.value = savedPrintFormat;
+        setPrintFormat(printFormat.value);
+        printFormat.addEventListener("change", () => {
+            localStorage.setItem("homecache-print-format", printFormat.value);
+            setPrintFormat(printFormat.value);
+        });
+    } else {
+        setPrintFormat(savedPrintFormat);
+    }
 
     function updatePrintSelection() {
         let count = 0;
@@ -140,8 +206,24 @@
         updatePrintSelection();
     });
 
+    document.querySelectorAll("[data-label-select-item]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const groupInputs = button
+                .closest(".print-label-item")
+                .querySelectorAll(".sheet-label-select input");
+            const shouldSelect = Array.from(groupInputs).some((input) => !input.checked);
+
+            groupInputs.forEach((input) => {
+                input.checked = shouldSelect;
+            });
+
+            updatePrintSelection();
+        });
+    });
+
     document.querySelector("[data-label-print]")?.addEventListener("click", () => {
         updatePrintSelection();
+        setPrintFormat(printFormat?.value || "a4");
         window.print();
     });
 

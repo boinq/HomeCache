@@ -41,9 +41,6 @@
                         </p>
                     </div>
 
-                    <a class="qr-thumb" href="/items/{{ item.id }}/label" title="View label">
-                        <img src="/items/{{ item.id }}/qr" alt="QR code for {{ item.name }}">
-                    </a>
                 </div>
 
                 <dl class="item-details">
@@ -83,7 +80,6 @@
                 <div class="card-actions">
                     <a class="button small secondary" href="/items/{{ item.id }}">View</a>
                     <a class="button small ghost" href="/items/{{ item.id }}/edit">Edit</a>
-                    <a class="button small ghost" href="/items/{{ item.id }}/label">Label</a>
                 </div>
             </article>
         {% endfor %}

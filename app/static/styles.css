@@ -55,7 +55,8 @@ a {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 1.5rem 2rem;
+    min-height: 104px;
+    padding: 1rem 2rem;
     background: rgba(18, 31, 24, 0.86);
     border-bottom: 1px solid var(--border);
     backdrop-filter: blur(12px);
@@ -63,6 +64,10 @@ a {
     top: 0;
     z-index: 10;
     transition: margin-left 180ms ease;
+}
+
+.site-header > .brand-logo {
+    margin-left: auto;
 }
 
 .menu-toggle {
@@ -125,8 +130,11 @@ a {
 
 .menu-toggle:checked ~ .page {
     width: min(1180px, calc(100% - var(--side-menu-width) - 2rem));
-    margin-left: calc(var(--side-menu-width) + 1rem);
-    margin-right: 1rem;
+    margin-left: calc(
+        var(--side-menu-width) +
+        max(1rem, calc((100vw - var(--side-menu-width) - 1180px) / 2))
+    );
+    margin-right: max(1rem, calc((100vw - var(--side-menu-width) - 1180px) / 2));
 }
 
 .side-menu-header {
@@ -174,6 +182,13 @@ a {
     margin: 0;
     font-size: 1.8rem;
     letter-spacing: -0.04em;
+}
+
+.brand-logo {
+    width: 72px;
+    height: 72px;
+    flex: 0 0 auto;
+    object-fit: contain;
 }
 
 .subtitle {
@@ -340,6 +355,61 @@ textarea:focus {
     gap: 1rem;
 }
 
+.item-grid[hidden] {
+    display: none;
+}
+
+.item-category-list {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.item-category-group {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.item-category-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 0.1rem;
+}
+
+.item-category-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    font-size: 1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+}
+
+.item-category-toggle:hover {
+    color: var(--accent-hover);
+}
+
+.item-category-arrow {
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 7px solid currentColor;
+    transform: rotate(90deg);
+    transition: transform 140ms ease;
+}
+
+.item-category-toggle[aria-expanded="false"] .item-category-arrow {
+    transform: rotate(0deg);
+}
+
 .item-card {
     background: var(--panel);
     border: 1px solid var(--border);
@@ -460,7 +530,7 @@ textarea:focus {
 
 .detail-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
     align-items: start;
 }
@@ -567,15 +637,20 @@ textarea:focus {
     font-weight: 700;
 }
 
-.batch-row {
+.batch-card {
     display: grid;
-    grid-template-columns: 58px minmax(0, 1fr) minmax(110px, 0.75fr) minmax(110px, 0.75fr) auto;
     gap: 0.75rem;
-    align-items: center;
     padding: 0.75rem;
     border: 1px solid var(--border);
     border-radius: 12px;
     background: var(--panel);
+}
+
+.batch-row {
+    display: grid;
+    grid-template-columns: 58px minmax(80px, 0.8fr) repeat(4, minmax(82px, 0.6fr)) auto;
+    gap: 0.45rem;
+    align-items: center;
 }
 
 .batch-qr {
@@ -597,17 +672,38 @@ textarea:focus {
 
 .batch-label {
     display: block;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.1rem;
     color: var(--muted);
     font-size: 0.75rem;
     font-weight: 800;
 }
 
+.batch-actions,
+.batch-edit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
 .batch-form {
     display: grid;
-    grid-template-columns: minmax(100px, 0.7fr) minmax(140px, 1fr) minmax(140px, 1fr) auto;
+    grid-template-columns: minmax(100px, 0.7fr) repeat(4, minmax(130px, 1fr)) auto;
     gap: 0.75rem;
     align-items: end;
+}
+
+.batch-edit-form {
+    display: grid;
+    grid-template-columns: minmax(100px, 0.7fr) repeat(4, minmax(130px, 1fr)) auto;
+    gap: 0.75rem;
+    align-items: end;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+}
+
+.batch-edit-form[hidden] {
+    display: none;
 }
 
 .button.danger {
@@ -832,6 +928,7 @@ textarea {
     .location-row,
     .location-edit-form,
     .batch-row,
+    .batch-edit-form,
     .batch-form {
         grid-template-columns: 1fr;
     }
@@ -965,7 +1062,39 @@ textarea {
     gap: 0.6rem;
 }
 
+.print-format-select {
+    width: auto;
+    min-width: 150px;
+    border-radius: 999px;
+    padding: 0.68rem 0.9rem;
+}
+
 .label-sheet {
+    display: grid;
+    gap: 1rem;
+}
+
+.print-label-item {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--panel-soft);
+}
+
+.print-label-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.print-label-item-header h3 {
+    margin: 0;
+}
+
+.print-label-batches {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 0.75rem;
@@ -1038,11 +1167,17 @@ textarea {
 @media print {
     @page {
         size: A4;
-        margin: 10mm;
+        margin: 0;
+    }
+
+    @page brother-ql-700 {
+        size: 62mm 100mm;
+        margin: 0;
     }
 
     body {
         background: #fff;
+        margin: 0;
     }
 
     .site-header,
@@ -1053,24 +1188,34 @@ textarea {
     }
 
     .page {
-        width: auto;
-        margin: 0;
+        width: 100% !important;
+        max-width: none;
+        margin: 0 !important;
     }
 
     .label-sheet {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6mm;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4mm;
+        padding: 5mm;
+        box-sizing: border-box;
+    }
+
+    .print-label-item,
+    .print-label-batches {
+        display: contents;
     }
 
     .sheet-label {
         background: #fff;
         color: #000;
-        min-height: 38mm;
+        min-height: 34mm;
         box-shadow: none;
         border: 1px solid #000;
         border-radius: 0;
-        padding: 4mm;
+        grid-template-columns: 22mm 1fr;
+        gap: 3mm;
+        padding: 3mm;
     }
 
     .sheet-label:not(.is-print-selected) {
@@ -1078,17 +1223,67 @@ textarea {
     }
 
     .sheet-label-qr img {
-        width: 26mm;
-        height: 26mm;
+        width: 22mm;
+        height: 22mm;
     }
 
     .sheet-label-info h3 {
-        font-size: 11pt;
+        font-size: 9.5pt;
     }
 
     .sheet-label-info p {
-        font-size: 8pt;
+        font-size: 7.5pt;
         color: #000;
+    }
+
+    .sheet-label-info .label-extra {
+        display: none;
+    }
+
+    .sheet-label-info .label-brand,
+    .sheet-label-info .label-expiry {
+        display: block;
+    }
+
+    body.print-format-brother .label-sheet {
+        display: block;
+        padding: 0;
+    }
+
+    body.print-format-brother .sheet-label {
+        page: brother-ql-700;
+        width: 62mm;
+        min-height: 100mm;
+        height: 100mm;
+        grid-template-columns: 24mm 1fr;
+        gap: 3mm;
+        align-items: center;
+        border: 0;
+        padding: 4mm;
+        break-after: page;
+        page-break-after: always;
+    }
+
+    body.print-format-brother .sheet-label-qr img {
+        width: 24mm;
+        height: 24mm;
+    }
+
+    body.print-format-brother .sheet-label-info h3 {
+        font-size: 11pt;
+    }
+
+    body.print-format-brother .sheet-label-info p {
+        font-size: 8.5pt;
+    }
+
+    body.print-format-brother .sheet-label:not(.is-print-selected) {
+        display: none;
+    }
+
+    body.print-format-brother .sheet-label.is-print-selected:last-of-type {
+        break-after: auto;
+        page-break-after: auto;
     }
 }
 
@@ -1133,8 +1328,9 @@ textarea {
     }
 
     .page {
-        width: auto;
-        margin: 0;
+        width: 100% !important;
+        max-width: none;
+        margin: 0 !important;
     }
 
     .print-label {

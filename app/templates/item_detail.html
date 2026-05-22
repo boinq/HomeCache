@@ -17,7 +17,6 @@
 
             <div class="detail-actions">
                 <a class="button secondary" href="/items/{{ item.id }}/edit">Edit</a>
-                <a class="button ghost" href="/items/{{ item.id }}/label">Label</a>
                 <a class="button ghost" href="/items">Back</a>
             </div>
         </div>
@@ -44,50 +43,6 @@
                 <dd>
                     {% if item.container %}
                         {{ item.container }}
-                    {% else %}
-                        —
-                    {% endif %}
-                </dd>
-            </div>
-
-            <div>
-                <dt>Purchased</dt>
-                <dd>
-                    {% if item.purchase_date %}
-                        {{ item.purchase_date }}
-                    {% else %}
-                        —
-                    {% endif %}
-                </dd>
-            </div>
-
-            <div>
-                <dt>Expires</dt>
-                <dd>
-                    {% if item.expiry_date %}
-                        <strong>{{ item.expiry_date }}</strong>
-                    {% else %}
-                        —
-                    {% endif %}
-                </dd>
-            </div>
-
-            <div>
-                <dt>Opened</dt>
-                <dd>
-                    {% if item.opened_date %}
-                        {{ item.opened_date }}
-                    {% else %}
-                        —
-                    {% endif %}
-                </dd>
-            </div>
-
-            <div>
-                <dt>Frozen</dt>
-                <dd>
-                    {% if item.frozen_date %}
-                        {{ item.frozen_date }}
                     {% else %}
                         —
                     {% endif %}
@@ -167,10 +122,11 @@
             {% if batches %}
                 <div class="batch-list">
                     {% for batch in batches %}
-                        <article class="batch-row" id="batch-{{ batch.public_id }}">
-                            <a class="batch-qr" href="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" target="_blank" title="Open batch QR">
-                                <img src="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.public_id }}">
-                            </a>
+                        <article class="batch-card" id="batch-{{ batch.public_id }}">
+                            <div class="batch-row">
+                                <a class="batch-qr" href="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" target="_blank" title="Open batch QR">
+                                    <img src="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.public_id }}">
+                                </a>
 
                             <div>
                                 <span class="batch-label">Quantity</span>
@@ -195,8 +151,89 @@
                                 {% endif %}
                             </div>
 
-                            <form method="post" action="/items/{{ item.id }}/batches/{{ batch.public_id }}/delete">
-                                <button class="button small danger" type="submit">Remove</button>
+                            <div>
+                                <span class="batch-label">Opened</span>
+                                {% if batch.opened_date %}
+                                    {{ batch.opened_date }}
+                                {% else %}
+                                    â€”
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <span class="batch-label">Frozen</span>
+                                {% if batch.frozen_date %}
+                                    {{ batch.frozen_date }}
+                                {% else %}
+                                    â€”
+                                {% endif %}
+                            </div>
+
+                                <div class="batch-actions">
+                                    <button class="button small ghost" type="button" data-batch-edit-toggle>Edit</button>
+                                    <form method="post" action="/items/{{ item.id }}/batches/{{ batch.public_id }}/delete">
+                                        <button class="button small danger" type="submit">Remove</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <form class="batch-edit-form" method="post" action="/items/{{ item.id }}/batches/{{ batch.public_id }}/edit" hidden>
+                                <div class="field">
+                                    <label for="edit_quantity_{{ batch.public_id }}">Quantity</label>
+                                    <input
+                                        id="edit_quantity_{{ batch.public_id }}"
+                                        name="quantity"
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value="{{ batch.quantity | int }}"
+                                    >
+                                </div>
+
+                                <div class="field">
+                                    <label for="edit_purchase_date_{{ batch.public_id }}">Purchase date</label>
+                                    <input
+                                        id="edit_purchase_date_{{ batch.public_id }}"
+                                        name="purchase_date"
+                                        type="date"
+                                        value="{% if batch.purchase_date %}{{ batch.purchase_date }}{% endif %}"
+                                    >
+                                </div>
+
+                                <div class="field">
+                                    <label for="edit_expiry_date_{{ batch.public_id }}">Expiry date</label>
+                                    <input
+                                        id="edit_expiry_date_{{ batch.public_id }}"
+                                        name="expiry_date"
+                                        type="date"
+                                        value="{% if batch.expiry_date %}{{ batch.expiry_date }}{% endif %}"
+                                    >
+                                </div>
+
+                                <div class="field">
+                                    <label for="edit_opened_date_{{ batch.public_id }}">Opened date</label>
+                                    <input
+                                        id="edit_opened_date_{{ batch.public_id }}"
+                                        name="opened_date"
+                                        type="date"
+                                        value="{% if batch.opened_date %}{{ batch.opened_date }}{% endif %}"
+                                    >
+                                </div>
+
+                                <div class="field">
+                                    <label for="edit_frozen_date_{{ batch.public_id }}">Frozen date</label>
+                                    <input
+                                        id="edit_frozen_date_{{ batch.public_id }}"
+                                        name="frozen_date"
+                                        type="date"
+                                        value="{% if batch.frozen_date %}{{ batch.frozen_date }}{% endif %}"
+                                    >
+                                </div>
+
+                                <div class="batch-edit-actions">
+                                    <button class="button small" type="submit">Save</button>
+                                    <button class="button small ghost" type="button" data-batch-edit-cancel>Cancel</button>
+                                </div>
                             </form>
                         </article>
                     {% endfor %}
@@ -228,6 +265,16 @@
                     <input id="batch_expiry_date" name="expiry_date" type="date">
                 </div>
 
+                <div class="field">
+                    <label for="batch_opened_date">Opened date</label>
+                    <input id="batch_opened_date" name="opened_date" type="date">
+                </div>
+
+                <div class="field">
+                    <label for="batch_frozen_date">Frozen date</label>
+                    <input id="batch_frozen_date" name="frozen_date" type="date">
+                </div>
+
                 <button class="button" type="submit">Add batch</button>
             </form>
         </section>
@@ -243,23 +290,31 @@
                 <form method="post" action="/items/{{ item.id }}/discard">
                     <button class="button danger" type="submit">Mark discarded</button>
                 </form>
+
+                <form method="post" action="/items/{{ item.id }}/delete" onsubmit="return confirm('Delete this item and all of its batches?');">
+                    <button class="button danger" type="submit">Delete item</button>
+                </form>
             </div>
         </section>
     </article>
-
-    <aside class="panel qr-panel">
-        <h3>QR label</h3>
-
-        <div class="qr-large">
-            <img src="/items/{{ item.id }}/qr" alt="QR code for {{ item.name }}">
-        </div>
-
-        <p class="qr-url">{{ qr_url }}</p>
-
-        <div class="card-actions">
-            <a class="button" href="/items/{{ item.id }}/label">Print label</a>
-            <a class="button ghost" href="/items/{{ item.id }}/qr" target="_blank">Open QR</a>
-        </div>
-    </aside>
 </section>
+<script>
+    document.querySelectorAll("[data-batch-edit-toggle]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const card = button.closest(".batch-card");
+            const form = card.querySelector(".batch-edit-form");
+            form.hidden = !form.hidden;
+            button.textContent = form.hidden ? "Edit" : "Close";
+        });
+    });
+
+    document.querySelectorAll("[data-batch-edit-cancel]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const form = button.closest(".batch-edit-form");
+            const card = button.closest(".batch-card");
+            form.hidden = true;
+            card.querySelector("[data-batch-edit-toggle]").textContent = "Edit";
+        });
+    });
+</script>
 {% endblock %}
