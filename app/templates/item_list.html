@@ -152,7 +152,7 @@
                                     <dt>Purchased</dt>
                                     <dd>
                                         {% if item.purchase_date %}
-                                            {{ item.purchase_date }}
+                                            {{ item.purchase_date | format_date }}
                                         {% else %}
                                             -
                                         {% endif %}
@@ -165,7 +165,7 @@
                                         {% if item.expiry_date %}
                                             {% set days_left = days_until(item.expiry_date) %}
                                             <span class="expiry">
-                                                {{ item.expiry_date }}
+                                                {{ item.expiry_date | format_date }}
                                                 {% if days_left is not none %}
                                                     ({{ days_left }} day{% if days_left != 1 %}s{% endif %})
                                                 {% endif %}

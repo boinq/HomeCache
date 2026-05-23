@@ -1,0 +1,12 @@
+.git
+.venv
+__pycache__
+*.pyc
+data
+*.db
+*.sqlite
+*.sqlite3
+Dockerfile
+docker-compose.yaml
+run_lan.bat
+run_lan.py

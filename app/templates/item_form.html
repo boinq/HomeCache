@@ -189,8 +189,11 @@
                         <input
                             id="warranty_expiry"
                             name="warranty_expiry"
-                            type="date"
-                            value="{% if item and item.warranty_expiry %}{{ item.warranty_expiry }}{% endif %}"
+                            type="text"
+                            inputmode="numeric"
+                            pattern="\d{2}/\d{2}/\d{4}"
+                            placeholder="dd/mm/yyyy"
+                            value="{% if item and item.warranty_expiry %}{{ item.warranty_expiry | format_date }}{% endif %}"
                         >
                     </div>
 

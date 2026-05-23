@@ -7,7 +7,7 @@
     <div>
         <h2>Expiring soon</h2>
         <p class="subtitle">
-            Items expiring between {{ today }} and {{ cutoff }}.
+            Items expiring between {{ today | format_date }} and {{ cutoff | format_date }}.
         </p>
     </div>
 
@@ -47,7 +47,7 @@
                     <div>
                         <dt>Expires</dt>
                         <dd>
-                            <strong>{{ item.expiry_date }}</strong>
+                            <strong>{{ item.expiry_date | format_date }}</strong>
                         </dd>
                     </div>
 
@@ -65,7 +65,7 @@
                         <dt>Purchased</dt>
                         <dd>
                             {% if item.purchase_date %}
-                                {{ item.purchase_date }}
+                                {{ item.purchase_date | format_date }}
                             {% else %}
                                 —
                             {% endif %}

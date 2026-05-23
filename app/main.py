@@ -1,19 +1,28 @@
 import os
+import asyncio
+import sqlite3
+import tempfile
 from datetime import date, datetime, timedelta
 from io import BytesIO
+from pathlib import Path
 from typing import Optional
 from uuid import UUID, uuid4
+from urllib.error import URLError
+from urllib.parse import quote
+from urllib.request import Request as UrlRequest, urlopen
 
 import qrcode
-from fastapi import Depends, FastAPI, Form, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 from sqlmodel import Session, select
+from starlette.background import BackgroundTask
 
 from app.database import create_db_and_tables, engine, get_session
 from app.models import (
+    AppSetting,
     Category,
     InventoryEvent,
     InventoryEventType,
@@ -21,6 +30,7 @@ from app.models import (
     ItemBatch,
     ItemStatus,
     Location,
+    NtfyNotification,
     StorageType,
 )
 
@@ -36,6 +46,15 @@ DEFAULT_CATEGORIES = [
     "documents",
     "other",
 ]
+NTFY_SETTING_DEFAULTS = {
+    "base_url": BASE_URL,
+    "ntfy_enabled": "false",
+    "ntfy_server_url": "https://ntfy.sh",
+    "ntfy_topic": "",
+    "ntfy_access_token": "",
+    "ntfy_expiry_days": "7",
+}
+NTFY_CHECK_INTERVAL_SECONDS = 6 * 60 * 60
 
 
 app = FastAPI(title="HomeCache")
@@ -50,20 +69,119 @@ def days_until(value: Optional[date]) -> Optional[int]:
     return (value - date.today()).days
 
 
+def format_date(value: Optional[date]) -> str:
+    if value is None:
+        return "-"
+
+    return value.strftime("%d/%m/%Y")
+
+
+def format_datetime(value: Optional[datetime]) -> str:
+    if value is None:
+        return "-"
+
+    return value.strftime("%d/%m/%Y %H:%M")
+
+
+def parse_form_date(value: Optional[str]) -> Optional[date]:
+    if not value:
+        return None
+
+    value = value.strip()
+    if not value:
+        return None
+
+    for date_format in ("%d/%m/%Y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(value, date_format).date()
+        except ValueError:
+            continue
+
+    raise HTTPException(
+        status_code=422,
+        detail="Dates must use dd/mm/yyyy format",
+    )
+
+
+def get_sqlite_database_path() -> Path:
+    if engine.url.get_backend_name() != "sqlite":
+        raise HTTPException(
+            status_code=400,
+            detail="Database backups are only supported for SQLite databases.",
+        )
+
+    database = engine.url.database
+    if not database or database == ":memory:":
+        raise HTTPException(
+            status_code=400,
+            detail="Database backups require a file-backed SQLite database.",
+        )
+
+    database_path = Path(database).resolve()
+    if not database_path.exists():
+        raise HTTPException(status_code=404, detail="Database file not found.")
+
+    return database_path
+
+
+def backup_sqlite_database(source_path: Path, backup_path: Path) -> None:
+    backup_path.parent.mkdir(parents=True, exist_ok=True)
+
+    source = sqlite3.connect(source_path)
+    destination = sqlite3.connect(backup_path)
+
+    try:
+        source.backup(destination)
+    finally:
+        destination.close()
+        source.close()
+
+
+def validate_sqlite_backup(backup_path: Path) -> None:
+    connection = sqlite3.connect(backup_path)
+
+    try:
+        integrity_result = connection.execute("PRAGMA integrity_check").fetchone()
+        if not integrity_result or integrity_result[0] != "ok":
+            raise HTTPException(status_code=400, detail="Backup integrity check failed.")
+
+        table_rows = connection.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table'"
+        ).fetchall()
+        table_names = {row[0] for row in table_rows}
+        required_tables = {"item", "itembatch", "appsetting"}
+
+        if not required_tables.issubset(table_names):
+            raise HTTPException(
+                status_code=400,
+                detail="Backup does not look like a HomeCache database.",
+            )
+    finally:
+        connection.close()
+
+
 templates.env.globals["days_until"] = days_until
+templates.env.filters["format_date"] = format_date
+templates.env.filters["format_datetime"] = format_datetime
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/assets", StaticFiles(directory="app/assets"), name="assets")
 
 
 @app.on_event("startup")
-def on_startup() -> None:
+async def on_startup() -> None:
     create_db_and_tables()
     ensure_item_batch_public_ids()
     seed_locations_from_items()
     seed_categories_from_items()
     seed_item_batches_from_items()
     remove_zero_quantity_batches()
+    asyncio.create_task(ntfy_expiry_notification_loop())
+
+
+@app.get("/health")
+def health_check() -> dict[str, str]:
+    return {"status": "ok"}
 
 
 def get_item_or_404(session: Session, item_id: UUID) -> Item:
@@ -146,6 +264,173 @@ def item_form_context(
     }
 
 
+def get_settings(session: Session) -> dict[str, str]:
+    settings = dict(NTFY_SETTING_DEFAULTS)
+    rows = session.exec(select(AppSetting)).all()
+
+    for row in rows:
+        settings[row.key] = row.value
+
+    return settings
+
+
+def set_setting(session: Session, key: str, value: str) -> None:
+    setting = session.get(AppSetting, key)
+
+    if setting:
+        setting.value = value
+        setting.updated_at = datetime.utcnow()
+    else:
+        setting = AppSetting(key=key, value=value)
+
+    session.add(setting)
+
+
+def get_base_url(session: Session) -> str:
+    settings = get_settings(session)
+    return (settings.get("base_url") or BASE_URL).strip().rstrip("/")
+
+
+def get_ntfy_expiry_days(settings: dict[str, str]) -> int:
+    try:
+        return max(0, int(settings.get("ntfy_expiry_days", "7")))
+    except ValueError:
+        return 7
+
+
+def is_ntfy_enabled(settings: dict[str, str]) -> bool:
+    return settings.get("ntfy_enabled") == "true"
+
+
+def build_ntfy_topic_url(server_url: str, topic: str) -> str:
+    server_url = server_url.strip().rstrip("/")
+    topic = topic.strip().strip("/")
+
+    if not server_url or not topic:
+        raise ValueError("ntfy server URL and topic are required")
+
+    return f"{server_url}/{quote(topic)}"
+
+
+def send_ntfy_message(
+    settings: dict[str, str],
+    title: str,
+    message: str,
+    tags: str = "warning",
+) -> None:
+    url = build_ntfy_topic_url(
+        settings.get("ntfy_server_url", ""),
+        settings.get("ntfy_topic", ""),
+    )
+    headers = {
+        "Title": title,
+        "Tags": tags,
+    }
+    token = settings.get("ntfy_access_token", "").strip()
+
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    request = UrlRequest(
+        url,
+        data=message.encode("utf-8"),
+        headers=headers,
+        method="POST",
+    )
+
+    with urlopen(request, timeout=10) as response:
+        if response.status >= 400:
+            raise URLError(f"ntfy returned HTTP {response.status}")
+
+
+def send_ntfy_message_safe(
+    settings: dict[str, str],
+    title: str,
+    message: str,
+    tags: str = "warning",
+) -> bool:
+    try:
+        send_ntfy_message(settings, title, message, tags)
+    except (OSError, ValueError, URLError):
+        return False
+
+    return True
+
+
+def send_expiry_notifications() -> int:
+    with Session(engine) as session:
+        settings = get_settings(session)
+
+        if not is_ntfy_enabled(settings):
+            return 0
+
+        expiry_days = get_ntfy_expiry_days(settings)
+        today = date.today()
+        cutoff = today + timedelta(days=expiry_days)
+        statement = (
+            select(ItemBatch, Item)
+            .join(Item, ItemBatch.item_id == Item.id)
+            .where(Item.status == ItemStatus.ACTIVE)
+            .where(ItemBatch.quantity > 0)
+            .where(ItemBatch.expiry_date.is_not(None))
+            .where(ItemBatch.expiry_date <= cutoff)
+            .order_by(ItemBatch.expiry_date, Item.name)
+        )
+        sent_count = 0
+
+        for batch, item in session.exec(statement).all():
+            if not batch.expiry_date:
+                continue
+
+            existing = session.exec(
+                select(NtfyNotification)
+                .where(NtfyNotification.batch_public_id == batch.public_id)
+                .where(NtfyNotification.expiry_date == batch.expiry_date)
+                .where(NtfyNotification.threshold_days == expiry_days)
+            ).first()
+
+            if existing:
+                continue
+
+            days_left = (batch.expiry_date - today).days
+            day_text = "today" if days_left == 0 else f"in {days_left} day"
+            if days_left != 1 and days_left != 0:
+                day_text += "s"
+            if days_left < 0:
+                day_text = f"{abs(days_left)} day"
+                if days_left != -1:
+                    day_text += "s"
+                day_text += " ago"
+
+            title = f"{item.name} expires {day_text}"
+            message = (
+                f"{item.name} expires on {format_date(batch.expiry_date)}.\n"
+                f"Quantity: {int(batch.quantity)} {item.unit}\n"
+                f"Location: {item.storage_location}"
+            )
+
+            if send_ntfy_message_safe(settings, title, message, "warning,package"):
+                session.add(
+                    NtfyNotification(
+                        batch_public_id=batch.public_id,
+                        expiry_date=batch.expiry_date,
+                        threshold_days=expiry_days,
+                    )
+                )
+                sent_count += 1
+
+        if sent_count:
+            session.commit()
+
+        return sent_count
+
+
+async def ntfy_expiry_notification_loop() -> None:
+    while True:
+        await asyncio.to_thread(send_expiry_notifications)
+        await asyncio.sleep(NTFY_CHECK_INTERVAL_SECONDS)
+
+
 def list_item_batches(session: Session, item_id: UUID) -> list[ItemBatch]:
     statement = (
         select(ItemBatch)
@@ -206,6 +491,21 @@ def list_print_label_item_groups(session: Session) -> list[dict]:
             "batches": list_item_batches(session, item.id),
         }
         for item in items
+    ]
+
+
+def list_inventory_summary_rows(session: Session) -> list[dict]:
+    statement = (
+        select(ItemBatch, Item)
+        .join(Item, ItemBatch.item_id == Item.id)
+        .where(Item.status == ItemStatus.ACTIVE)
+        .where(ItemBatch.quantity > 0)
+        .order_by(Item.category, Item.name, ItemBatch.expiry_date)
+    )
+
+    return [
+        {"batch": batch, "item": item}
+        for batch, item in session.exec(statement).all()
     ]
 
 
@@ -512,7 +812,7 @@ def create_item(
     brand: Optional[str] = Form(None),
     barcode: Optional[str] = Form(None),
     serial_number: Optional[str] = Form(None),
-    warranty_expiry: Optional[date] = Form(None),
+    warranty_expiry: Optional[str] = Form(None),
     notes: Optional[str] = Form(None),
 ):
     category = ensure_category(session, category)
@@ -530,7 +830,7 @@ def create_item(
         brand=brand,
         barcode=barcode,
         serial_number=serial_number,
-        warranty_expiry=warranty_expiry,
+        warranty_expiry=parse_form_date(warranty_expiry),
         notes=notes,
     )
 
@@ -711,6 +1011,128 @@ def delete_location(
     return RedirectResponse(url="/locations", status_code=303)
 
 
+@app.get("/settings", response_class=HTMLResponse)
+def settings_page(
+    request: Request,
+    session: Session = Depends(get_session),
+    status: Optional[str] = None,
+):
+    return templates.TemplateResponse(
+        request=request,
+        name="settings.html",
+        context={
+            "settings": get_settings(session),
+            "status": status,
+        },
+    )
+
+
+@app.post("/settings")
+def update_settings(
+    session: Session = Depends(get_session),
+    base_url: str = Form(""),
+    ntfy_enabled: Optional[str] = Form(None),
+    ntfy_server_url: str = Form(""),
+    ntfy_topic: str = Form(""),
+    ntfy_access_token: str = Form(""),
+    ntfy_expiry_days: int = Form(7),
+    action: str = Form("save"),
+):
+    set_setting(session, "base_url", (base_url.strip() or BASE_URL).rstrip("/"))
+    set_setting(session, "ntfy_enabled", "true" if ntfy_enabled == "true" else "false")
+    set_setting(session, "ntfy_server_url", ntfy_server_url.strip())
+    set_setting(session, "ntfy_topic", ntfy_topic.strip())
+    set_setting(session, "ntfy_access_token", ntfy_access_token.strip())
+    set_setting(session, "ntfy_expiry_days", str(max(0, ntfy_expiry_days)))
+    session.commit()
+
+    settings = get_settings(session)
+
+    if action == "test":
+        sent = send_ntfy_message_safe(
+            settings,
+            "HomeCache test notification",
+            "Your ntfy settings are working.",
+            "white_check_mark",
+        )
+        status = "test-sent" if sent else "test-failed"
+    else:
+        if is_ntfy_enabled(settings):
+            send_expiry_notifications()
+        status = "saved"
+
+    return RedirectResponse(url=f"/settings?status={status}", status_code=303)
+
+
+@app.get("/settings/database/backup")
+def download_database_backup():
+    database_path = get_sqlite_database_path()
+    timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+    backup_filename = f"homecache-backup-{timestamp}.db"
+
+    with tempfile.NamedTemporaryFile(
+        prefix="homecache-backup-",
+        suffix=".db",
+        delete=False,
+    ) as temp_file:
+        backup_path = Path(temp_file.name)
+
+    backup_sqlite_database(database_path, backup_path)
+
+    return FileResponse(
+        path=backup_path,
+        filename=backup_filename,
+        media_type="application/octet-stream",
+        background=BackgroundTask(os.remove, str(backup_path)),
+    )
+
+
+@app.post("/settings/database/restore")
+async def restore_database_backup(
+    backup_file: UploadFile = File(...),
+):
+    database_path = get_sqlite_database_path()
+
+    with tempfile.NamedTemporaryFile(
+        prefix="homecache-restore-",
+        suffix=".db",
+        delete=False,
+    ) as temp_file:
+        restore_path = Path(temp_file.name)
+
+        while chunk := await backup_file.read(1024 * 1024):
+            temp_file.write(chunk)
+
+    await backup_file.close()
+
+    try:
+        validate_sqlite_backup(restore_path)
+        timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        safety_backup_path = database_path.with_name(
+            f"{database_path.stem}.pre-restore-{timestamp}{database_path.suffix}"
+        )
+        backup_sqlite_database(database_path, safety_backup_path)
+
+        engine.dispose()
+        os.replace(restore_path, database_path)
+        engine.dispose()
+
+        create_db_and_tables()
+        ensure_item_batch_public_ids()
+        seed_locations_from_items()
+        seed_categories_from_items()
+        seed_item_batches_from_items()
+        remove_zero_quantity_batches()
+    except HTTPException:
+        restore_path.unlink(missing_ok=True)
+        raise
+    except Exception as exc:
+        restore_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="Backup restore failed.") from exc
+
+    return RedirectResponse(url="/settings?status=restore-complete", status_code=303)
+
+
 @app.get("/items/{item_id}", response_class=HTMLResponse)
 def item_detail(
     item_id: UUID,
@@ -735,10 +1157,10 @@ def create_item_batch(
     item_id: UUID,
     session: Session = Depends(get_session),
     quantity: int = Form(1),
-    purchase_date: Optional[date] = Form(None),
-    expiry_date: Optional[date] = Form(None),
-    opened_date: Optional[date] = Form(None),
-    frozen_date: Optional[date] = Form(None),
+    purchase_date: Optional[str] = Form(None),
+    expiry_date: Optional[str] = Form(None),
+    opened_date: Optional[str] = Form(None),
+    frozen_date: Optional[str] = Form(None),
 ):
     item = get_item_or_404(session, item_id)
 
@@ -750,10 +1172,10 @@ def create_item_batch(
     batch = ItemBatch(
         item_id=item.id,
         quantity=quantity,
-        purchase_date=purchase_date,
-        expiry_date=expiry_date,
-        opened_date=opened_date,
-        frozen_date=frozen_date,
+        purchase_date=parse_form_date(purchase_date),
+        expiry_date=parse_form_date(expiry_date),
+        opened_date=parse_form_date(opened_date),
+        frozen_date=parse_form_date(frozen_date),
     )
 
     session.add(batch)
@@ -777,10 +1199,10 @@ def update_item_batch(
     batch_public_id: UUID,
     session: Session = Depends(get_session),
     quantity: int = Form(1),
-    purchase_date: Optional[date] = Form(None),
-    expiry_date: Optional[date] = Form(None),
-    opened_date: Optional[date] = Form(None),
-    frozen_date: Optional[date] = Form(None),
+    purchase_date: Optional[str] = Form(None),
+    expiry_date: Optional[str] = Form(None),
+    opened_date: Optional[str] = Form(None),
+    frozen_date: Optional[str] = Form(None),
 ):
     item = get_item_or_404(session, item_id)
     batch = get_batch_or_404(session, batch_public_id)
@@ -805,10 +1227,10 @@ def update_item_batch(
         return RedirectResponse(url=f"/items/{item.id}", status_code=303)
 
     batch.quantity = quantity
-    batch.purchase_date = purchase_date
-    batch.expiry_date = expiry_date
-    batch.opened_date = opened_date
-    batch.frozen_date = frozen_date
+    batch.purchase_date = parse_form_date(purchase_date)
+    batch.expiry_date = parse_form_date(expiry_date)
+    batch.opened_date = parse_form_date(opened_date)
+    batch.frozen_date = parse_form_date(frozen_date)
     batch.updated_at = datetime.utcnow()
 
     session.add(batch)
@@ -952,7 +1374,7 @@ def update_item(
     brand: Optional[str] = Form(None),
     barcode: Optional[str] = Form(None),
     serial_number: Optional[str] = Form(None),
-    warranty_expiry: Optional[date] = Form(None),
+    warranty_expiry: Optional[str] = Form(None),
     notes: Optional[str] = Form(None),
 ):
     item = get_item_or_404(session, item_id)
@@ -970,7 +1392,7 @@ def update_item(
     item.brand = brand
     item.barcode = barcode
     item.serial_number = serial_number
-    item.warranty_expiry = warranty_expiry
+    item.warranty_expiry = parse_form_date(warranty_expiry)
     item.notes = notes
     item.updated_at = datetime.utcnow()
 
@@ -1080,7 +1502,7 @@ def item_qr_code(
     if not batch:
         raise HTTPException(status_code=404, detail="No batch QR available")
 
-    qr_url = f"{BASE_URL}/b/{batch.public_id}"
+    qr_url = f"{get_base_url(session)}/b/{batch.public_id}"
 
     img = qrcode.make(qr_url)
     buffer = BytesIO()
@@ -1102,7 +1524,7 @@ def item_batch_qr_code(
     if batch.item_id != item.id:
         raise HTTPException(status_code=404, detail="Batch not found")
 
-    img = qrcode.make(f"{BASE_URL}/b/{batch.public_id}")
+    img = qrcode.make(f"{get_base_url(session)}/b/{batch.public_id}")
     buffer = BytesIO()
     img.save(buffer, format="PNG")
     buffer.seek(0)
@@ -1131,7 +1553,7 @@ def item_label(
         context={
             "item": item,
             "batch": batch,
-            "qr_url": f"{BASE_URL}/b/{batch.public_id}",
+            "qr_url": f"{get_base_url(session)}/b/{batch.public_id}",
         },
     )
 
@@ -1167,6 +1589,23 @@ def print_labels(
             "item_groups": item_groups,
             "selected": selected,
             "selected_batch_ids": {str(batch_id) for batch_id in selected_ids},
+        },
+    )
+
+
+@app.get("/inventory-summary", response_class=HTMLResponse)
+def inventory_summary(
+    request: Request,
+    session: Session = Depends(get_session),
+):
+    rows = list_inventory_summary_rows(session)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="inventory_summary.html",
+        context={
+            "rows": rows,
+            "today": date.today(),
         },
     )
 

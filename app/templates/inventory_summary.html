@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory summary - HomeCache{% endblock %}
+
+{% block content %}
+<section class="summary-page">
+    <div class="items-header no-print">
+        <div>
+            <h2>Inventory summary</h2>
+            <p class="subtitle">
+                {{ rows | length }} batch{% if rows | length != 1 %}es{% endif %}
+                in stock as of {{ today | format_date }}.
+            </p>
+        </div>
+
+        <div class="toolbar-actions">
+            <a class="button ghost" href="/items">Back to items</a>
+            <button class="button" type="button" onclick="window.print()">Print summary</button>
+        </div>
+    </div>
+
+    {% if rows %}
+        <section class="summary-print-header">
+            <h2>HomeCache inventory summary</h2>
+            <p>{{ today | format_date }}</p>
+        </section>
+
+        <table class="inventory-summary-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Brand</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Location</th>
+                    <th>Purchased</th>
+                    <th>Expires</th>
+                    <th>Days left</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    {% set item = row.item %}
+                    {% set batch = row.batch %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>
+                            {% if item.brand %}
+                                {{ item.brand }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ item.category }}</td>
+                        <td>{{ batch.quantity | int }} {{ item.unit }}</td>
+                        <td>
+                            {{ item.storage_location }}
+                            {% if item.storage_area %}
+                                / {{ item.storage_area }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if batch.purchase_date %}
+                                {{ batch.purchase_date | format_date }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if batch.expiry_date %}
+                                {{ batch.expiry_date | format_date }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if batch.expiry_date %}
+                                {% set days_left = days_until(batch.expiry_date) %}
+                                {{ days_left }} day{% if days_left != 1 %}s{% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <section class="empty-state">
+            <h2>No inventory in stock</h2>
+            <p>Add batches to items before printing a summary.</p>
+            <a class="button" href="/items">Back to items</a>
+        </section>
+    {% endif %}
+</section>
+{% endblock %}

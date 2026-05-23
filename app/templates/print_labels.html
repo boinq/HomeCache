@@ -9,7 +9,10 @@
             <h2>Print labels</h2>
             <p class="subtitle">
                 <span data-selected-count>{{ items | length }}</span>
-                selected label<span data-selected-plural>{% if items | length != 1 %}s{% endif %}</span>.
+                selected label<span data-selected-plural>{% if items | length != 1 %}s{% endif %}</span>
+                &middot;
+                <span data-copy-count>{{ items | length }}</span>
+                total print<span data-copy-plural>{% if items | length != 1 %}s{% endif %}</span>.
             </p>
         </div>
 
@@ -63,6 +66,18 @@
                                             <span>Print</span>
                                         </label>
 
+                                        <label class="sheet-label-copy no-print">
+                                            <span>Copies</span>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                step="1"
+                                                value="1"
+                                                data-label-copies
+                                                aria-label="Copies of {{ item.name }} label"
+                                            >
+                                        </label>
+
                                         <div class="sheet-label-qr">
                                             <img src="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.public_id }}">
                                         </div>
@@ -100,28 +115,28 @@
                                             {% if batch.purchase_date %}
                                                 <p class="label-extra">
                                                     <strong>Purchased:</strong>
-                                                    {{ batch.purchase_date }}
+                                                    {{ batch.purchase_date | format_date }}
                                                 </p>
                                             {% endif %}
 
                                             {% if batch.expiry_date %}
                                                 <p class="label-expiry">
                                                     <strong>Expires:</strong>
-                                                    {{ batch.expiry_date }}
+                                                    {{ batch.expiry_date | format_date }}
                                                 </p>
                                             {% endif %}
 
                                             {% if batch.opened_date %}
                                                 <p class="label-extra">
                                                     <strong>Opened:</strong>
-                                                    {{ batch.opened_date }}
+                                                    {{ batch.opened_date | format_date }}
                                                 </p>
                                             {% endif %}
 
                                             {% if batch.frozen_date %}
                                                 <p class="label-extra">
                                                     <strong>Frozen:</strong>
-                                                    {{ batch.frozen_date }}
+                                                    {{ batch.frozen_date | format_date }}
                                                 </p>
                                             {% endif %}
                                         </div>
@@ -146,8 +161,11 @@
 
 <script>
     const labelInputs = document.querySelectorAll(".sheet-label-select input");
+    const copyInputs = document.querySelectorAll("[data-label-copies]");
     const selectedCount = document.querySelector("[data-selected-count]");
     const selectedPlural = document.querySelector("[data-selected-plural]");
+    const copyCount = document.querySelector("[data-copy-count]");
+    const copyPlural = document.querySelector("[data-copy-plural]");
     const printFormat = document.querySelector("[data-print-format]");
 
     function setPrintFormat(format) {
@@ -169,15 +187,38 @@
 
     function updatePrintSelection() {
         let count = 0;
+        let totalCopies = 0;
+        let firstSelectedLabel = null;
+        let lastSelectedLabel = null;
 
         labelInputs.forEach((input) => {
             const label = input.closest(".sheet-label");
+            const copiesInput = label.querySelector("[data-label-copies]");
+            const copies = Math.max(1, parseInt(copiesInput?.value || "1", 10) || 1);
+
+            if (copiesInput && copiesInput.value !== String(copies)) {
+                copiesInput.value = copies;
+            }
+
             label.classList.toggle("is-print-selected", input.checked);
+            label.classList.remove("is-first-print-label");
+            label.classList.remove("is-last-print-label");
 
             if (input.checked) {
                 count += 1;
+                totalCopies += copies;
+                firstSelectedLabel ||= label;
+                lastSelectedLabel = label;
             }
         });
+
+        if (firstSelectedLabel) {
+            firstSelectedLabel.classList.add("is-first-print-label");
+        }
+
+        if (lastSelectedLabel) {
+            lastSelectedLabel.classList.add("is-last-print-label");
+        }
 
         if (selectedCount) {
             selectedCount.textContent = count;
@@ -186,10 +227,239 @@
         if (selectedPlural) {
             selectedPlural.textContent = count === 1 ? "" : "s";
         }
+
+        if (copyCount) {
+            copyCount.textContent = totalCopies;
+        }
+
+        if (copyPlural) {
+            copyPlural.textContent = totalCopies === 1 ? "" : "s";
+        }
+    }
+
+    function clearGeneratedPrintCopies() {
+        document.querySelectorAll(".is-print-generated-copy").forEach((label) => {
+            label.remove();
+        });
+
+        document.querySelectorAll(".brother-print-pages").forEach((container) => {
+            container.remove();
+        });
+    }
+
+    function clonePrintableLabel(label) {
+        const copy = label.cloneNode(true);
+        copy.classList.add("is-print-selected");
+        copy.classList.remove("is-first-print-label", "is-last-print-label");
+        copy.querySelectorAll(".no-print").forEach((element) => {
+            element.remove();
+        });
+        return copy;
+    }
+
+    function syncPrintCopies() {
+        clearGeneratedPrintCopies();
+        updatePrintSelection();
+
+        const printableLabels = [];
+
+        labelInputs.forEach((input) => {
+            const label = input.closest(".sheet-label");
+            label.classList.remove("is-first-print-label");
+            label.classList.remove("is-last-print-label");
+
+            if (!input.checked) {
+                return;
+            }
+
+            printableLabels.push(label);
+
+            const copiesInput = label.querySelector("[data-label-copies]");
+            const copies = Math.max(1, parseInt(copiesInput?.value || "1", 10) || 1);
+            let insertAfter = label;
+
+            for (let index = 1; index < copies; index += 1) {
+                const copy = clonePrintableLabel(label);
+                copy.classList.add("is-print-generated-copy");
+                insertAfter.insertAdjacentElement("afterend", copy);
+                insertAfter = copy;
+                printableLabels.push(copy);
+            }
+        });
+
+        printableLabels.at(0)?.classList.add("is-first-print-label");
+        printableLabels.at(-1)?.classList.add("is-last-print-label");
+
+        if (document.body.classList.contains("print-format-brother")) {
+            const pages = document.createElement("section");
+            pages.className = "brother-print-pages";
+
+            printableLabels.forEach((label, index) => {
+                const page = document.createElement("article");
+                page.className = "brother-print-page";
+
+                if (index === printableLabels.length - 1) {
+                    page.classList.add("is-last-print-page");
+                }
+
+                page.appendChild(clonePrintableLabel(label));
+                pages.appendChild(page);
+            });
+
+            document.querySelector("#label-print-form")?.appendChild(pages);
+        }
+    }
+
+    function getPrintableLabels() {
+        const printableLabels = [];
+
+        labelInputs.forEach((input) => {
+            if (!input.checked) {
+                return;
+            }
+
+            const label = input.closest(".sheet-label");
+            const copiesInput = label.querySelector("[data-label-copies]");
+            const copies = Math.max(1, parseInt(copiesInput?.value || "1", 10) || 1);
+
+            for (let index = 0; index < copies; index += 1) {
+                printableLabels.push(clonePrintableLabel(label));
+            }
+        });
+
+        return printableLabels;
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;");
+    }
+
+    function printBrotherLabels() {
+        const printableLabels = getPrintableLabels();
+
+        if (!printableLabels.length) {
+            return;
+        }
+
+        const printWindow = window.open("", "_blank", "popup,width=420,height=320");
+
+        if (!printWindow) {
+            syncPrintCopies();
+            window.print();
+            return;
+        }
+
+        const pages = printableLabels.map((label) => {
+            const qr = label.querySelector(".sheet-label-qr img");
+            const title = label.querySelector(".sheet-label-info h3");
+            const brand = label.querySelector(".label-brand");
+            const expiry = label.querySelector(".label-expiry");
+
+            return `
+                <section class="label-page">
+                    <img class="label-qr" src="${escapeHtml(qr?.src || "")}" alt="">
+                    <div class="label-info">
+                        <h1>${escapeHtml(title?.textContent.trim() || "")}</h1>
+                        ${brand ? `<p>${escapeHtml(brand.textContent.trim())}</p>` : ""}
+                        ${expiry ? `<p>${escapeHtml(expiry.textContent.trim())}</p>` : ""}
+                    </div>
+                </section>
+            `;
+        }).join("");
+
+        printWindow.document.open();
+        printWindow.document.write(`
+            <!doctype html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>Brother labels</title>
+                <style>
+                    @page {
+                        size: 62mm 29mm;
+                        margin: 0;
+                    }
+
+                    html,
+                    body {
+                        width: 62mm;
+                        margin: 0;
+                        padding: 0;
+                        background: #fff;
+                    }
+
+                    .label-page {
+                        display: grid;
+                        grid-template-columns: 25.9mm 1fr;
+                        grid-template-rows: 25.9mm;
+                        width: 62mm;
+                        height: 29mm;
+                        margin: 0;
+                        padding: 0;
+                        overflow: hidden;
+                        break-after: page;
+                        page-break-after: always;
+                        box-sizing: border-box;
+                        font-family: Arial, Helvetica, sans-serif;
+                        color: #000;
+                    }
+
+                    .label-page:last-child {
+                        break-after: auto;
+                        page-break-after: auto;
+                    }
+
+                    .label-qr {
+                        width: 25.9mm;
+                        height: 25.9mm;
+                        object-fit: contain;
+                        display: block;
+                    }
+
+                    .label-info {
+                        display: flex;
+                        height: 25.9mm;
+                        flex-direction: column;
+                        justify-content: center;
+                        overflow: hidden;
+                    }
+
+                    h1 {
+                        margin: 0;
+                        font-size: 12.2pt;
+                        line-height: 1.1;
+                    }
+
+                    p {
+                        margin: 0;
+                        font-size: 9.8pt;
+                        line-height: 1.1;
+                    }
+                </style>
+            </head>
+            <body>${pages}</body>
+            </html>
+        `);
+        printWindow.document.close();
+
+        printWindow.addEventListener("load", () => {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        });
     }
 
     labelInputs.forEach((input) => {
         input.addEventListener("change", updatePrintSelection);
+    });
+
+    copyInputs.forEach((input) => {
+        input.addEventListener("change", updatePrintSelection);
+        input.addEventListener("input", updatePrintSelection);
     });
 
     document.querySelector("[data-label-select='all']")?.addEventListener("click", () => {
@@ -222,9 +492,21 @@
     });
 
     document.querySelector("[data-label-print]")?.addEventListener("click", () => {
-        updatePrintSelection();
         setPrintFormat(printFormat?.value || "a4");
+
+        if (printFormat?.value === "brother") {
+            printBrotherLabels();
+            return;
+        }
+
+        syncPrintCopies();
         window.print();
+    });
+
+    window.addEventListener("beforeprint", syncPrintCopies);
+    window.addEventListener("afterprint", () => {
+        clearGeneratedPrintCopies();
+        updatePrintSelection();
     });
 
     updatePrintSelection();

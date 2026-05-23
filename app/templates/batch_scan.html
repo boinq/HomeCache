@@ -39,7 +39,7 @@
                 <dt>Purchased</dt>
                 <dd>
                     {% if batch.purchase_date %}
-                        {{ batch.purchase_date }}
+                        {{ batch.purchase_date | format_date }}
                     {% else %}
                         -
                     {% endif %}
@@ -50,7 +50,7 @@
                 <dt>Expires</dt>
                 <dd>
                     {% if batch.expiry_date %}
-                        {{ batch.expiry_date }}
+                        {{ batch.expiry_date | format_date }}
                     {% else %}
                         -
                     {% endif %}
@@ -61,7 +61,7 @@
                 <dt>Opened</dt>
                 <dd>
                     {% if batch.opened_date %}
-                        {{ batch.opened_date }}
+                        {{ batch.opened_date | format_date }}
                     {% else %}
                         -
                     {% endif %}
@@ -72,7 +72,7 @@
                 <dt>Frozen</dt>
                 <dd>
                     {% if batch.frozen_date %}
-                        {{ batch.frozen_date }}
+                        {{ batch.frozen_date | format_date }}
                     {% else %}
                         -
                     {% endif %}

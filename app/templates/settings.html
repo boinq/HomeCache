@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - HomeCache{% endblock %}
+
+{% block content %}
+<section class="settings-layout">
+    <article class="panel settings-panel">
+        <div class="form-header">
+            <div>
+                <p class="eyebrow">Configuration</p>
+                <h2>Settings</h2>
+                <p class="subtitle">Configure external access and ntfy expiry notifications.</p>
+            </div>
+        </div>
+
+        {% if status == "saved" %}
+            <p class="status-message">Settings saved.</p>
+        {% elif status == "test-sent" %}
+            <p class="status-message">Test notification sent.</p>
+        {% elif status == "test-failed" %}
+            <p class="status-message danger-text">Test notification failed. Check the server, topic, and token.</p>
+        {% elif status == "restore-complete" %}
+            <p class="status-message">Database restored from backup.</p>
+        {% endif %}
+
+        <form class="item-form" method="post" action="/settings">
+            <section class="form-section">
+                <h3>Access</h3>
+
+                <div class="form-grid">
+                    <div class="field span-2">
+                        <label for="base_url">Base URL</label>
+                        <input
+                            id="base_url"
+                            name="base_url"
+                            type="url"
+                            value="{{ settings.base_url }}"
+                            placeholder="https://homecache.example.local"
+                        >
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <h3>ntfy</h3>
+
+                <div class="form-grid">
+                    <div class="field span-2 checkbox-field">
+                        <label>
+                            <input
+                                type="checkbox"
+                                name="ntfy_enabled"
+                                value="true"
+                                {% if settings.ntfy_enabled == "true" %}checked{% endif %}
+                            >
+                            Enable expiry notifications
+                        </label>
+                    </div>
+
+                    <div class="field">
+                        <label for="ntfy_server_url">Server URL</label>
+                        <input
+                            id="ntfy_server_url"
+                            name="ntfy_server_url"
+                            type="url"
+                            value="{{ settings.ntfy_server_url }}"
+                            placeholder="https://ntfy.sh"
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="ntfy_topic">Topic</label>
+                        <input
+                            id="ntfy_topic"
+                            name="ntfy_topic"
+                            type="text"
+                            value="{{ settings.ntfy_topic }}"
+                            placeholder="homecache-expiry"
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="ntfy_expiry_days">Notify before expiry</label>
+                        <input
+                            id="ntfy_expiry_days"
+                            name="ntfy_expiry_days"
+                            type="number"
+                            min="0"
+                            step="1"
+                            value="{{ settings.ntfy_expiry_days }}"
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="ntfy_access_token">Access token</label>
+                        <input
+                            id="ntfy_access_token"
+                            name="ntfy_access_token"
+                            type="password"
+                            value="{{ settings.ntfy_access_token }}"
+                            placeholder="Optional"
+                        >
+                    </div>
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <button class="button secondary" type="submit" name="action" value="test">Send test</button>
+                <button class="button" type="submit" name="action" value="save">Save settings</button>
+            </div>
+        </form>
+
+        <section class="form-section">
+            <h3>Database backup</h3>
+
+            <div class="form-grid">
+                <div class="field span-2">
+                    <p class="subtitle">Download a copy of the current database or restore HomeCache from a previous backup.</p>
+                </div>
+
+                <div class="field">
+                    <label>Backup</label>
+                    <a class="button secondary" href="/settings/database/backup">Download backup</a>
+                </div>
+
+                <form
+                    class="field"
+                    method="post"
+                    action="/settings/database/restore"
+                    enctype="multipart/form-data"
+                    onsubmit="return confirm('Restore this backup? This replaces the current database. A pre-restore backup will be created first.');"
+                >
+                    <label for="backup_file">Restore</label>
+                    <input id="backup_file" name="backup_file" type="file" accept=".db,.sqlite,.sqlite3" required>
+                    <button class="button danger" type="submit">Restore backup</button>
+                </form>
+            </div>
+        </section>
+    </article>
+</section>
+{% endblock %}

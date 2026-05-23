@@ -1,12 +1,12 @@
 services:
-  inventory:
+  homecache:
     build: .
-    container_name: inventory
+    container_name: homecache
     ports:
-      - "8000:8000"
+      - "${HOMECACHE_PORT:-8000}:8000"
     volumes:
-      - ./data:/data
+      - ${HOMECACHE_DATA_DIR:-./data}:/data
     environment:
       - DATABASE_URL=sqlite:////data/inventory.db
-      - BASE_URL=http://inventory.local:8000
+      - BASE_URL=${BASE_URL:-http://localhost:8000}
     restart: unless-stopped

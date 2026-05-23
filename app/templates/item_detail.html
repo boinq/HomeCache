@@ -86,7 +86,7 @@
                 <dt>Warranty expiry</dt>
                 <dd>
                     {% if item.warranty_expiry %}
-                        {{ item.warranty_expiry }}
+                        {{ item.warranty_expiry | format_date }}
                     {% else %}
                         —
                     {% endif %}
@@ -95,12 +95,12 @@
 
             <div>
                 <dt>Created</dt>
-                <dd>{{ item.created_at.strftime("%Y-%m-%d %H:%M") }}</dd>
+                <dd>{{ item.created_at | format_datetime }}</dd>
             </div>
 
             <div>
                 <dt>Updated</dt>
-                <dd>{{ item.updated_at.strftime("%Y-%m-%d %H:%M") }}</dd>
+                <dd>{{ item.updated_at | format_datetime }}</dd>
             </div>
         </dl>
 
@@ -136,7 +136,7 @@
                             <div>
                                 <span class="batch-label">Purchased</span>
                                 {% if batch.purchase_date %}
-                                    {{ batch.purchase_date }}
+                                    {{ batch.purchase_date | format_date }}
                                 {% else %}
                                     â€”
                                 {% endif %}
@@ -145,7 +145,7 @@
                             <div>
                                 <span class="batch-label">Expires</span>
                                 {% if batch.expiry_date %}
-                                    {{ batch.expiry_date }}
+                                    {{ batch.expiry_date | format_date }}
                                 {% else %}
                                     â€”
                                 {% endif %}
@@ -154,7 +154,7 @@
                             <div>
                                 <span class="batch-label">Opened</span>
                                 {% if batch.opened_date %}
-                                    {{ batch.opened_date }}
+                                    {{ batch.opened_date | format_date }}
                                 {% else %}
                                     â€”
                                 {% endif %}
@@ -163,7 +163,7 @@
                             <div>
                                 <span class="batch-label">Frozen</span>
                                 {% if batch.frozen_date %}
-                                    {{ batch.frozen_date }}
+                                    {{ batch.frozen_date | format_date }}
                                 {% else %}
                                     â€”
                                 {% endif %}
@@ -195,8 +195,11 @@
                                     <input
                                         id="edit_purchase_date_{{ batch.public_id }}"
                                         name="purchase_date"
-                                        type="date"
-                                        value="{% if batch.purchase_date %}{{ batch.purchase_date }}{% endif %}"
+                                        type="text"
+                                        inputmode="numeric"
+                                        pattern="\d{2}/\d{2}/\d{4}"
+                                        placeholder="dd/mm/yyyy"
+                                        value="{% if batch.purchase_date %}{{ batch.purchase_date | format_date }}{% endif %}"
                                     >
                                 </div>
 
@@ -205,8 +208,11 @@
                                     <input
                                         id="edit_expiry_date_{{ batch.public_id }}"
                                         name="expiry_date"
-                                        type="date"
-                                        value="{% if batch.expiry_date %}{{ batch.expiry_date }}{% endif %}"
+                                        type="text"
+                                        inputmode="numeric"
+                                        pattern="\d{2}/\d{2}/\d{4}"
+                                        placeholder="dd/mm/yyyy"
+                                        value="{% if batch.expiry_date %}{{ batch.expiry_date | format_date }}{% endif %}"
                                     >
                                 </div>
 
@@ -215,8 +221,11 @@
                                     <input
                                         id="edit_opened_date_{{ batch.public_id }}"
                                         name="opened_date"
-                                        type="date"
-                                        value="{% if batch.opened_date %}{{ batch.opened_date }}{% endif %}"
+                                        type="text"
+                                        inputmode="numeric"
+                                        pattern="\d{2}/\d{2}/\d{4}"
+                                        placeholder="dd/mm/yyyy"
+                                        value="{% if batch.opened_date %}{{ batch.opened_date | format_date }}{% endif %}"
                                     >
                                 </div>
 
@@ -225,8 +234,11 @@
                                     <input
                                         id="edit_frozen_date_{{ batch.public_id }}"
                                         name="frozen_date"
-                                        type="date"
-                                        value="{% if batch.frozen_date %}{{ batch.frozen_date }}{% endif %}"
+                                        type="text"
+                                        inputmode="numeric"
+                                        pattern="\d{2}/\d{2}/\d{4}"
+                                        placeholder="dd/mm/yyyy"
+                                        value="{% if batch.frozen_date %}{{ batch.frozen_date | format_date }}{% endif %}"
                                     >
                                 </div>
 
@@ -257,22 +269,22 @@
 
                 <div class="field">
                     <label for="batch_purchase_date">Purchase date</label>
-                    <input id="batch_purchase_date" name="purchase_date" type="date">
+                    <input id="batch_purchase_date" name="purchase_date" type="text" inputmode="numeric" pattern="\d{2}/\d{2}/\d{4}" placeholder="dd/mm/yyyy">
                 </div>
 
                 <div class="field">
                     <label for="batch_expiry_date">Expiry date</label>
-                    <input id="batch_expiry_date" name="expiry_date" type="date">
+                    <input id="batch_expiry_date" name="expiry_date" type="text" inputmode="numeric" pattern="\d{2}/\d{2}/\d{4}" placeholder="dd/mm/yyyy">
                 </div>
 
                 <div class="field">
                     <label for="batch_opened_date">Opened date</label>
-                    <input id="batch_opened_date" name="opened_date" type="date">
+                    <input id="batch_opened_date" name="opened_date" type="text" inputmode="numeric" pattern="\d{2}/\d{2}/\d{4}" placeholder="dd/mm/yyyy">
                 </div>
 
                 <div class="field">
                     <label for="batch_frozen_date">Frozen date</label>
-                    <input id="batch_frozen_date" name="frozen_date" type="date">
+                    <input id="batch_frozen_date" name="frozen_date" type="text" inputmode="numeric" pattern="\d{2}/\d{2}/\d{4}" placeholder="dd/mm/yyyy">
                 </div>
 
                 <button class="button" type="submit">Add batch</button>

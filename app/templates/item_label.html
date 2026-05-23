@@ -33,28 +33,28 @@
             {% if batch.expiry_date %}
                 <p>
                     <strong>Expires:</strong>
-                    {{ batch.expiry_date }}
+                    {{ batch.expiry_date | format_date }}
                 </p>
             {% endif %}
 
             {% if batch.purchase_date %}
                 <p>
                     <strong>Purchased:</strong>
-                    {{ batch.purchase_date }}
+                    {{ batch.purchase_date | format_date }}
                 </p>
             {% endif %}
 
             {% if batch.opened_date %}
                 <p>
                     <strong>Opened:</strong>
-                    {{ batch.opened_date }}
+                    {{ batch.opened_date | format_date }}
                 </p>
             {% endif %}
 
             {% if batch.frozen_date %}
                 <p>
                     <strong>Frozen:</strong>
-                    {{ batch.frozen_date }}
+                    {{ batch.frozen_date | format_date }}
                 </p>
             {% endif %}
         </div>

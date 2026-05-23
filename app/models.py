@@ -116,6 +116,21 @@ class ItemBatch(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow, index=True)
 
 
+class AppSetting(SQLModel, table=True):
+    key: str = Field(primary_key=True)
+    value: str = Field(default="")
+    updated_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class NtfyNotification(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    batch_public_id: UUID = Field(index=True)
+    expiry_date: date = Field(index=True)
+    threshold_days: int = Field(index=True)
+    sent_on: date = Field(default_factory=date.today, index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
 class InventoryEvent(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
