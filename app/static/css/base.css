@@ -1,0 +1,277 @@
+﻿:root {
+    color-scheme: dark;
+    --bg: #0c1410;
+    --panel: #121f18;
+    --panel-soft: #19281f;
+    --text: #eef7f0;
+    --muted: #9eb3a6;
+    --border: #2d4436;
+    --accent: #64b883;
+    --accent-hover: #7fd39d;
+    --accent-soft: rgba(100, 184, 131, 0.14);
+    --accent-soft-hover: rgba(100, 184, 131, 0.22);
+    --danger: #d76555;
+    --danger-hover: #ef8272;
+    --shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
+    --radius: 18px;
+    --header-height: 104px;
+    --side-menu-width: min(300px, 76vw);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+    background: var(--bg);
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(circle at top left, rgba(100, 184, 131, 0.18), transparent 32rem),
+        radial-gradient(circle at bottom right, rgba(39, 94, 67, 0.14), transparent 30rem),
+        var(--bg);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+a {
+    color: inherit;
+}
+
+.site-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: var(--header-height);
+    padding: 1rem 2rem;
+    background: rgba(18, 31, 24, 0.86);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    transition: margin-left 180ms ease;
+}
+
+.site-header > .brand-logo {
+    margin-left: auto;
+}
+
+.menu-toggle {
+    position: fixed;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.menu-button {
+    display: inline-grid;
+    place-items: center;
+    gap: 0.2rem;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.menu-button:hover {
+    background: var(--accent-soft);
+}
+
+.menu-button span {
+    display: block;
+    width: 19px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--accent);
+}
+
+.menu-backdrop {
+    display: none;
+}
+
+.side-menu {
+    position: fixed;
+    inset: var(--header-height) auto 0 0;
+    z-index: 9;
+    width: var(--side-menu-width);
+    padding: 1.25rem;
+    background: rgba(18, 31, 24, 0.98);
+    border-right: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    transform: translateX(-100%);
+    transition: transform 180ms ease;
+}
+
+.menu-toggle:checked ~ .side-menu {
+    transform: translateX(0);
+}
+
+.menu-toggle:checked ~ .page {
+    width: min(1180px, calc(100% - var(--side-menu-width) - 2rem));
+    margin-left: calc(
+        var(--side-menu-width) +
+        max(1rem, calc((100vw - var(--side-menu-width) - 1180px) / 2))
+    );
+    margin-right: max(1rem, calc((100vw - var(--side-menu-width) - 1180px) / 2));
+}
+
+.side-menu-nav {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.side-menu-nav .button {
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.site-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    letter-spacing: -0.04em;
+}
+
+.brand-logo {
+    width: 72px;
+    height: 72px;
+    flex: 0 0 auto;
+    object-fit: contain;
+}
+
+.subtitle {
+    margin: 0.2rem 0 0;
+    color: var(--muted);
+}
+
+.page {
+    width: min(1180px, calc(100% - 2rem));
+    margin: 2rem auto 4rem;
+    transition:
+        width 180ms ease,
+        margin-left 180ms ease,
+        margin-right 180ms ease;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1rem;
+}
+
+.filters {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr auto;
+    gap: 1rem;
+    align-items: end;
+}
+
+.field {
+    display: grid;
+    gap: 0.35rem;
+}
+
+label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    font: inherit;
+    background: #0f1a14;
+    color: var(--text);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #74877b;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 3px solid rgba(100, 184, 131, 0.22);
+    border-color: var(--accent);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.78rem 1rem;
+    background: var(--accent);
+    color: #07110b;
+    font-weight: 800;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.button:hover {
+    background: var(--accent-hover);
+}
+
+.button.secondary {
+    color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.button.secondary:hover {
+    background: var(--accent-soft-hover);
+}
+
+.button.ghost {
+    color: var(--text);
+    background: transparent;
+    border: 1px solid var(--border);
+}
+
+.button.ghost:hover {
+    background: var(--panel-soft);
+}
+
+.button.small {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9rem;
+}
+
+.button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+

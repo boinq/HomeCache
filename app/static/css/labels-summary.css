@@ -1,0 +1,469 @@
+﻿.label-page {
+    display: grid;
+    gap: 1rem;
+    justify-items: center;
+}
+
+.label-toolbar {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.print-label {
+    width: 420px;
+    min-height: 220px;
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+}
+
+.print-label-qr {
+    display: grid;
+    place-items: center;
+}
+
+.print-label-qr img {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+}
+
+.print-label-info h2 {
+    margin: 0 0 0.35rem;
+    font-size: 1.25rem;
+    letter-spacing: -0.03em;
+}
+
+.print-label-info p {
+    margin: 0.25rem 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.label-url {
+    max-width: 420px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+}
+
+.days-filter {
+    display: flex;
+    align-items: end;
+    gap: 0.5rem;
+}
+
+.days-filter label {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.days-filter input {
+    width: 90px;
+}
+
+.print-labels-page {
+    display: grid;
+    gap: 1rem;
+}
+
+.summary-page {
+    display: grid;
+    gap: 1rem;
+}
+
+.summary-print-header {
+    display: none;
+}
+
+.print-only {
+    display: none;
+}
+
+.inventory-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+}
+
+.inventory-summary-table th,
+.inventory-summary-table td {
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+}
+
+.inventory-summary-table th {
+    color: var(--accent);
+    background: var(--panel-soft);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.inventory-summary-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.summary-item-link {
+    color: var(--accent);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.summary-item-link:hover {
+    text-decoration: underline;
+}
+
+.print-labels-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.print-labels-toolbar h2 {
+    margin: 0;
+    font-size: 1.6rem;
+    letter-spacing: -0.04em;
+}
+
+.toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.print-format-select {
+    width: auto;
+    min-width: 150px;
+    border-radius: 999px;
+    padding: 0.68rem 0.9rem;
+}
+
+.label-sheet {
+    display: grid;
+    gap: 1rem;
+}
+
+.print-label-item {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--panel-soft);
+}
+
+.print-label-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.print-label-item-header h3 {
+    margin: 0;
+}
+
+.print-label-batches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 0.75rem;
+}
+
+.sheet-label {
+    position: relative;
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 0.75rem;
+    align-items: center;
+    min-height: 132px;
+    padding: 0.75rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.sheet-label:not(.is-print-selected) {
+    opacity: 0.55;
+}
+
+.sheet-label-select {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.55rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    width: fit-content;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(25, 40, 31, 0.96);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.sheet-label-copy {
+    position: absolute;
+    right: 0.55rem;
+    bottom: 0.55rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    width: fit-content;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(25, 40, 31, 0.96);
+    color: var(--text);
+}
+
+.sheet-label-select input {
+    width: auto;
+}
+
+.sheet-label-copy input {
+    width: 4rem;
+    padding: 0.25rem 0.45rem;
+    border-radius: 999px;
+}
+
+.is-print-generated-copy {
+    display: none;
+}
+
+.brother-print-pages {
+    display: none;
+}
+
+.sheet-label-qr {
+    display: grid;
+    place-items: center;
+}
+
+.sheet-label-qr img {
+    width: 88px;
+    height: 88px;
+    object-fit: contain;
+}
+
+.sheet-label-info h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    line-height: 1.15;
+}
+
+.sheet-label-info p {
+    margin: 0.18rem 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.25;
+}
+
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 0;
+    }
+
+    @page brother-ql-700 {
+        size: 62mm 29mm;
+        margin: 0;
+    }
+
+    html,
+    body {
+        background: #fff;
+        margin: 0;
+        padding: 0;
+    }
+
+    body.print-format-brother {
+        page: brother-ql-700;
+        width: 62mm;
+        min-width: 62mm;
+    }
+
+    .site-header,
+    .menu-backdrop,
+    .side-menu,
+    .no-print {
+        display: none !important;
+    }
+
+    .print-only {
+        display: inline;
+    }
+
+    .page {
+        width: 100% !important;
+        max-width: none;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .label-sheet {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+        padding: 0;
+        box-sizing: border-box;
+        align-items: start;
+        justify-items: start;
+    }
+
+    .print-label-item,
+    .print-label-batches {
+        display: contents;
+    }
+
+    .sheet-label {
+        background: #fff;
+        color: #000;
+        min-height: 34mm;
+        box-shadow: none;
+        border: 1px solid #000;
+        border-radius: 0;
+        grid-template-columns: 22mm 1fr;
+        gap: 0;
+        align-items: start;
+        padding: 0;
+    }
+
+    .sheet-label:not(.is-print-selected) {
+        display: none;
+    }
+
+    .is-print-generated-copy {
+        display: grid;
+    }
+
+    .sheet-label-qr img {
+        width: 22mm;
+        height: 22mm;
+    }
+
+    .sheet-label-info h3 {
+        margin: 0;
+        font-size: 9.5pt;
+    }
+
+    .sheet-label-info p {
+        margin: 0;
+        font-size: 7.5pt;
+        color: #000;
+    }
+
+    .sheet-label-info .label-extra {
+        display: none;
+    }
+
+    .sheet-label-info .label-brand,
+    .sheet-label-info .label-expiry {
+        display: block;
+    }
+
+    body.print-format-brother .label-sheet {
+        display: none;
+        padding: 0;
+        width: 62mm;
+        margin: 0;
+    }
+
+    body.print-format-brother .brother-print-pages {
+        display: block;
+        width: 62mm;
+        margin: 0;
+        padding: 0;
+    }
+
+    body.print-format-brother .brother-print-page {
+        page: brother-ql-700;
+        display: block;
+        width: 62mm;
+        height: 29mm;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        break-before: auto;
+        page-break-before: auto;
+        break-after: auto;
+        page-break-after: auto;
+    }
+
+    body.print-format-brother .brother-print-page + .brother-print-page {
+        break-before: page;
+        page-break-before: always;
+    }
+
+    body.print-format-brother .brother-print-page .sheet-label {
+        display: grid;
+        width: 62mm;
+        min-height: 0;
+        height: 28.8mm;
+        grid-template-columns: 21.6mm 1fr;
+        grid-template-rows: 1fr;
+        gap: 0;
+        align-items: start;
+        justify-items: start;
+        border: 0;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        break-after: auto;
+        page-break-after: auto;
+    }
+
+    body.print-format-brother .brother-print-page .sheet-label-info {
+        align-self: start;
+        display: flex;
+        height: 21.6mm;
+        flex-direction: column;
+        justify-content: center;
+        justify-self: start;
+        padding: 0;
+    }
+
+    body.print-format-brother .brother-print-page .sheet-label-qr img {
+        width: 21.6mm;
+        height: 21.6mm;
+    }
+
+    body.print-format-brother .brother-print-page .sheet-label-info h3 {
+        margin: 0;
+        font-size: 10.2pt;
+        line-height: 1.1;
+    }
+
+    body.print-format-brother .brother-print-page .sheet-label-info p {
+        margin: 0;
+        font-size: 8.2pt;
+        line-height: 1.1;
+    }
+
+    body.print-format-brother .brother-print-page .sheet-label:not(.is-print-selected) {
+        display: none;
+    }
+}
+

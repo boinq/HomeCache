@@ -1,0 +1,147 @@
+﻿.form-layout {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.form-panel {
+    padding: 1.25rem;
+}
+
+.form-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.form-header h2 {
+    margin: 0.2rem 0 0;
+    font-size: 2rem;
+    letter-spacing: -0.04em;
+}
+
+.item-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.form-section {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--panel-soft);
+}
+
+.form-section h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.span-2 {
+    grid-column: span 2;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+}
+
+.locations-layout {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.settings-layout {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.locations-panel {
+    padding: 1.25rem;
+}
+
+.settings-panel {
+    padding: 1.25rem;
+}
+
+.checkbox-field label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--text);
+}
+
+.checkbox-field input {
+    width: auto;
+}
+
+.status-message {
+    margin: 0 0 1rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel-soft);
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.danger-text {
+    color: var(--danger-hover);
+}
+
+.location-create-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: end;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--panel-soft);
+}
+
+.location-list {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.location-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: end;
+    padding: 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--panel-soft);
+}
+
+.location-edit-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.75rem;
+    align-items: end;
+}
+
+.location-meta {
+    color: var(--muted);
+    font-weight: 800;
+    white-space: nowrap;
+    padding-bottom: 0.65rem;
+}
+

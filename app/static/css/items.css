@@ -1,0 +1,263 @@
+﻿.items-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 2rem 0 1rem;
+}
+
+.items-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.count {
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.sort-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin: -0.2rem 0 1rem;
+}
+
+.sort-form {
+    display: grid;
+    grid-template-columns: minmax(180px, 220px) minmax(130px, 160px);
+    gap: 0.65rem;
+    align-items: center;
+    justify-content: end;
+}
+
+.sort-form .field {
+    min-width: 0;
+}
+
+.sort-form select {
+    padding: 0.62rem 0.8rem;
+    border-radius: 999px;
+    background: var(--panel-soft);
+}
+
+.view-form {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.item-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1rem;
+}
+
+.item-grid[hidden] {
+    display: none;
+}
+
+.item-grid-list {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+}
+
+.item-category-list {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.item-category-group {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.item-category-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 0.1rem;
+}
+
+.item-category-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    font-size: 1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+}
+
+.item-category-toggle:hover {
+    color: var(--accent-hover);
+}
+
+.item-category-arrow {
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 7px solid currentColor;
+    transform: rotate(90deg);
+    transition: transform 140ms ease;
+}
+
+.item-category-toggle[aria-expanded="false"] .item-category-arrow {
+    transform: rotate(0deg);
+}
+
+.item-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1rem;
+}
+
+.item-grid-list .item-card {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(260px, 1.4fr) auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.85rem 1rem;
+}
+
+.item-grid-list .item-details {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.item-grid-list .item-details div {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+}
+
+.item-grid-list .notes {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+.item-grid-list .card-actions {
+    margin: 0;
+    justify-content: flex-end;
+}
+
+.item-card-main {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.item-card h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+}
+
+.item-card h3 a {
+    text-decoration: none;
+}
+
+.item-card h3 a:hover {
+    text-decoration: underline;
+}
+
+.meta {
+    margin: 0.35rem 0 0;
+    color: var(--muted);
+}
+
+.qr-thumb {
+    flex: 0 0 auto;
+    width: 74px;
+    height: 74px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.35rem;
+    background: #fff;
+}
+
+.qr-thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.item-details {
+    display: grid;
+    gap: 0.6rem;
+    margin: 1rem 0 0;
+}
+
+.item-details div {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 0.5rem;
+}
+
+.item-details dt {
+    color: var(--muted);
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+.item-details dd {
+    margin: 0;
+}
+
+.expiry {
+    font-weight: 800;
+}
+
+.notes {
+    margin: 1rem 0 0;
+    padding: 0.75rem;
+    border-radius: 12px;
+    background: var(--panel-soft);
+    color: var(--muted);
+}
+
+.card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.empty-state {
+    margin-top: 2rem;
+    padding: 3rem 1rem;
+    text-align: center;
+    background: var(--panel);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+}
+
+.empty-state h2 {
+    margin: 0 0 0.5rem;
+}
+
+.empty-state p {
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+}
+
+.brand-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.brand-link:hover {
+    text-decoration: underline;
+}
+

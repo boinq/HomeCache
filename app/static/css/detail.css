@@ -1,0 +1,262 @@
+﻿.detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.detail-panel,
+.qr-panel {
+    padding: 1.25rem;
+}
+
+.detail-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.detail-header h2 {
+    margin: 0.2rem 0 0;
+    font-size: 2rem;
+    letter-spacing: -0.04em;
+}
+
+.eyebrow {
+    margin: 0;
+    color: var(--accent);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+}
+
+.detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.detail-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.detail-list div {
+    padding: 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--panel-soft);
+}
+
+.detail-list dt {
+    color: var(--muted);
+    font-weight: 800;
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.detail-list dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.notes-block,
+.batches-block,
+.danger-zone {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 14px;
+    background: var(--panel-soft);
+    border: 1px solid var(--border);
+}
+
+.notes-block h3,
+.batches-block h3,
+.danger-zone h3,
+.qr-panel h3 {
+    margin: 0 0 0.75rem;
+}
+
+.notes-block p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.batches-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.batch-list {
+    display: grid;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.batch-empty {
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.batch-card {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+}
+
+.batch-row {
+    display: grid;
+    grid-template-columns: 58px minmax(80px, 0.8fr) repeat(4, minmax(82px, 0.6fr)) auto;
+    gap: 0.45rem;
+    align-items: center;
+}
+
+.batch-qr {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    padding: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+}
+
+.batch-qr img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.batch-label {
+    display: block;
+    margin-bottom: 0.1rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.batch-actions,
+.batch-edit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.batch-form {
+    display: grid;
+    grid-template-columns: minmax(100px, 0.7fr) repeat(4, minmax(130px, 1fr)) auto;
+    gap: 0.75rem;
+    align-items: end;
+}
+
+.batch-edit-form {
+    display: grid;
+    grid-template-columns: minmax(100px, 0.7fr) repeat(4, minmax(130px, 1fr)) auto;
+    gap: 0.75rem;
+    align-items: end;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+}
+
+.batch-edit-form[hidden] {
+    display: none;
+}
+
+.button.danger {
+    background: var(--danger);
+    color: #160503;
+}
+
+.button.danger:hover {
+    background: var(--danger-hover);
+}
+
+.qr-panel {
+    position: sticky;
+    top: 7rem;
+}
+
+.qr-large {
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: #fff;
+}
+
+.qr-large img {
+    width: 220px;
+    height: 220px;
+    object-fit: contain;
+}
+
+.qr-url {
+    margin: 0.9rem 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+}
+
+.scan-layout {
+    display: grid;
+    justify-items: center;
+}
+
+.scan-panel {
+    width: min(100%, 560px);
+    padding: 1.25rem;
+}
+
+.scan-panel h2 {
+    margin: 0.2rem 0 1rem;
+    font-size: 2rem;
+    letter-spacing: -0.04em;
+}
+
+.scan-quantity {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--panel-soft);
+}
+
+.scan-quantity span {
+    color: var(--muted);
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+.scan-quantity strong {
+    font-size: 2.3rem;
+    letter-spacing: -0.04em;
+}
+
+.scan-detail-list {
+    grid-template-columns: 1fr;
+}
+
+.scan-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1rem;
+}
+
