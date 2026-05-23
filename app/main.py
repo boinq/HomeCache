@@ -1096,6 +1096,7 @@ async def restore_database_backup(
     with tempfile.NamedTemporaryFile(
         prefix="homecache-restore-",
         suffix=".db",
+        dir=database_path.parent,
         delete=False,
     ) as temp_file:
         restore_path = Path(temp_file.name)
@@ -1114,8 +1115,9 @@ async def restore_database_backup(
         backup_sqlite_database(database_path, safety_backup_path)
 
         engine.dispose()
-        os.replace(restore_path, database_path)
+        backup_sqlite_database(restore_path, database_path)
         engine.dispose()
+        restore_path.unlink(missing_ok=True)
 
         create_db_and_tables()
         ensure_item_batch_public_ids()
@@ -1128,7 +1130,10 @@ async def restore_database_backup(
         raise
     except Exception as exc:
         restore_path.unlink(missing_ok=True)
-        raise HTTPException(status_code=400, detail="Backup restore failed.") from exc
+        raise HTTPException(
+            status_code=400,
+            detail=f"Backup restore failed: {exc}",
+        ) from exc
 
     return RedirectResponse(url="/settings?status=restore-complete", status_code=303)
 
