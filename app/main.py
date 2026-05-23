@@ -42,6 +42,16 @@ app = FastAPI(title="HomeCache")
 
 templates = Jinja2Templates(directory="app/templates")
 
+
+def days_until(value: Optional[date]) -> Optional[int]:
+    if value is None:
+        return None
+
+    return (value - date.today()).days
+
+
+templates.env.globals["days_until"] = days_until
+
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/assets", StaticFiles(directory="app/assets"), name="assets")
 

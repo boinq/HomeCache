@@ -14,6 +14,7 @@
     --danger-hover: #ef8272;
     --shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
     --radius: 18px;
+    --header-height: 104px;
     --side-menu-width: min(300px, 76vw);
 }
 
@@ -55,7 +56,7 @@ a {
     display: flex;
     align-items: center;
     gap: 1rem;
-    min-height: 104px;
+    min-height: var(--header-height);
     padding: 1rem 2rem;
     background: rgba(18, 31, 24, 0.86);
     border-bottom: 1px solid var(--border);
@@ -109,8 +110,8 @@ a {
 
 .side-menu {
     position: fixed;
-    inset: 0 auto 0 0;
-    z-index: 15;
+    inset: var(--header-height) auto 0 0;
+    z-index: 9;
     width: var(--side-menu-width);
     padding: 1.25rem;
     background: rgba(18, 31, 24, 0.98);
@@ -124,10 +125,6 @@ a {
     transform: translateX(0);
 }
 
-.menu-toggle:checked ~ .site-header {
-    margin-left: var(--side-menu-width);
-}
-
 .menu-toggle:checked ~ .page {
     width: min(1180px, calc(100% - var(--side-menu-width) - 2rem));
     margin-left: calc(
@@ -135,37 +132,6 @@ a {
         max(1rem, calc((100vw - var(--side-menu-width) - 1180px) / 2))
     );
     margin-right: max(1rem, calc((100vw - var(--side-menu-width) - 1180px) / 2));
-}
-
-.side-menu-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-    margin-bottom: 1.25rem;
-}
-
-.side-menu-header h2 {
-    margin: 0;
-    font-size: 1.45rem;
-}
-
-.menu-close {
-    display: inline-grid;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    color: var(--text);
-    background: var(--panel-soft);
-    font-size: 1.7rem;
-    line-height: 1;
-    cursor: pointer;
-}
-
-.menu-close:hover {
-    background: var(--accent-soft);
 }
 
 .side-menu-nav {

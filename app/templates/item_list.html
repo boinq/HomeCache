@@ -163,7 +163,13 @@
                                     <dt>Expires</dt>
                                     <dd>
                                         {% if item.expiry_date %}
-                                            <span class="expiry">{{ item.expiry_date }}</span>
+                                            {% set days_left = days_until(item.expiry_date) %}
+                                            <span class="expiry">
+                                                {{ item.expiry_date }}
+                                                {% if days_left is not none %}
+                                                    ({{ days_left }} day{% if days_left != 1 %}s{% endif %})
+                                                {% endif %}
+                                            </span>
                                         {% else %}
                                             -
                                         {% endif %}
