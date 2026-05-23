@@ -43,7 +43,10 @@
                     {% set item = row.item %}
                     {% set batch = row.batch %}
                     <tr>
-                        <td>{{ item.name }}</td>
+                        <td>
+                            <a class="summary-item-link no-print" href="/items/{{ item.id }}">{{ item.name }}</a>
+                            <span class="print-only">{{ item.name }}</span>
+                        </td>
                         <td>
                             {% if item.brand %}
                                 {{ item.brand }}

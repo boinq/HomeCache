@@ -1096,6 +1096,10 @@ textarea {
     display: none;
 }
 
+.print-only {
+    display: none;
+}
+
 .inventory-summary-table {
     width: 100%;
     border-collapse: collapse;
@@ -1124,6 +1128,16 @@ textarea {
 
 .inventory-summary-table tr:last-child td {
     border-bottom: 0;
+}
+
+.summary-item-link {
+    color: var(--accent);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.summary-item-link:hover {
+    text-decoration: underline;
 }
 
 .print-labels-toolbar {
@@ -1305,6 +1319,10 @@ textarea {
     .side-menu,
     .no-print {
         display: none !important;
+    }
+
+    .print-only {
+        display: inline;
     }
 
     .page {
