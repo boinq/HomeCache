@@ -63,7 +63,8 @@
 
         <div class="field">
             <select id="sort_by" name="sort_by" aria-label="Sort by" data-auto-submit>
-                <option value="" {% if not sort_by %}selected{% endif %}>Default</option>
+                <option value="created_at" {% if sort_by == "created_at" %}selected{% endif %}>Created</option>
+                <option value="name" {% if sort_by == "name" %}selected{% endif %}>Name</option>
                 <option value="purchase_date" {% if sort_by == "purchase_date" %}selected{% endif %}>Purchase date</option>
                 <option value="expiry_date" {% if sort_by == "expiry_date" %}selected{% endif %}>Expiry date</option>
             </select>

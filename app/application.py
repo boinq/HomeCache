@@ -618,8 +618,8 @@ def list_items(
     q: Optional[str] = None,
     location: Optional[str] = None,
     category: Optional[str] = None,
-    sort_by: Optional[str] = None,
-    sort_dir: str = "asc",
+    sort_by: str = "created_at",
+    sort_dir: str = "desc",
     view: str = "cards",
 ):
     statement = select(Item).where(Item.status == ItemStatus.ACTIVE)
@@ -634,18 +634,21 @@ def list_items(
         statement = statement.where(Item.category == category)
 
     sortable_fields = {
+        "created_at": Item.created_at,
+        "name": Item.name,
         "purchase_date": Item.purchase_date,
         "expiry_date": Item.expiry_date,
     }
-    sort_column = sortable_fields.get(sort_by or "")
+    sort_by = sort_by if sort_by in sortable_fields else "created_at"
+    sort_column = sortable_fields[sort_by]
     sort_dir = "desc" if sort_dir == "desc" else "asc"
     view_mode = "list" if view == "list" else "cards"
 
-    if sort_column is not None:
-        sort_expression = sort_column.desc() if sort_dir == "desc" else sort_column.asc()
-        statement = statement.order_by(sort_expression, Item.name)
+    sort_expression = sort_column.desc() if sort_dir == "desc" else sort_column.asc()
+    if sort_by == "name":
+        statement = statement.order_by(sort_expression, Item.created_at.desc())
     else:
-        statement = statement.order_by(Item.expiry_date, Item.name)
+        statement = statement.order_by(sort_expression, Item.name)
 
     items = session.exec(statement).all()
     item_groups = [
@@ -669,7 +672,7 @@ def list_items(
             "q": q or "",
             "location": location or "",
             "category": category or "",
-            "sort_by": sort_by or "",
+            "sort_by": sort_by,
             "sort_dir": sort_dir,
             "view_mode": view_mode,
         },
