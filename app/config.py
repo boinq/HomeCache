@@ -16,6 +16,7 @@ DEFAULT_CATEGORIES = [
 
 NTFY_SETTING_DEFAULTS = {
     "base_url": BASE_URL,
+    "theme": "dark-green",
     "ntfy_enabled": "false",
     "ntfy_server_url": "https://ntfy.sh",
     "ntfy_topic": "",

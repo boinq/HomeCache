@@ -14,8 +14,162 @@
     --danger-hover: #ef8272;
     --shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
     --radius: 18px;
+    --body-background:
+        radial-gradient(circle at top left, rgba(100, 184, 131, 0.18), transparent 32rem),
+        radial-gradient(circle at bottom right, rgba(39, 94, 67, 0.14), transparent 30rem),
+        var(--bg);
+    --header-bg: rgba(18, 31, 24, 0.86);
+    --menu-bg: rgba(18, 31, 24, 0.98);
+    --input-bg: #0f1a14;
+    --placeholder: #74877b;
+    --focus-ring: rgba(100, 184, 131, 0.22);
+    --button-text: #07110b;
+    --control-chip-bg: rgba(25, 40, 31, 0.96);
     --header-height: 104px;
     --side-menu-width: min(300px, 76vw);
+}
+
+html.theme-dark-mode {
+    color-scheme: dark;
+    --bg: #0b0d10;
+    --panel: #15181d;
+    --panel-soft: #1d2229;
+    --text: #f2f4f7;
+    --muted: #a4acb7;
+    --border: #313843;
+    --accent: #8ab4f8;
+    --accent-hover: #a7c7ff;
+    --accent-soft: rgba(138, 180, 248, 0.14);
+    --accent-soft-hover: rgba(138, 180, 248, 0.23);
+    --danger: #ef6f6c;
+    --danger-hover: #ff8a86;
+    --shadow: 0 16px 36px rgba(0, 0, 0, 0.38);
+    --body-background:
+        radial-gradient(circle at top left, rgba(138, 180, 248, 0.14), transparent 31rem),
+        radial-gradient(circle at bottom right, rgba(108, 117, 125, 0.16), transparent 32rem),
+        var(--bg);
+    --header-bg: rgba(21, 24, 29, 0.9);
+    --menu-bg: rgba(21, 24, 29, 0.98);
+    --input-bg: #101318;
+    --placeholder: #7f8792;
+    --focus-ring: rgba(138, 180, 248, 0.24);
+    --button-text: #071018;
+    --control-chip-bg: rgba(29, 34, 41, 0.96);
+}
+
+html.theme-light-mode {
+    color-scheme: light;
+    --bg: #f4f6f2;
+    --panel: #ffffff;
+    --panel-soft: #eef2ec;
+    --text: #19201b;
+    --muted: #627066;
+    --border: #d3ddd4;
+    --accent: #2f7d53;
+    --accent-hover: #246642;
+    --accent-soft: rgba(47, 125, 83, 0.12);
+    --accent-soft-hover: rgba(47, 125, 83, 0.2);
+    --danger: #b94a3d;
+    --danger-hover: #96382d;
+    --shadow: 0 14px 34px rgba(31, 45, 35, 0.12);
+    --body-background:
+        radial-gradient(circle at top left, rgba(47, 125, 83, 0.12), transparent 32rem),
+        radial-gradient(circle at bottom right, rgba(196, 214, 199, 0.38), transparent 30rem),
+        var(--bg);
+    --header-bg: rgba(255, 255, 255, 0.88);
+    --menu-bg: rgba(255, 255, 255, 0.98);
+    --input-bg: #ffffff;
+    --placeholder: #879289;
+    --focus-ring: rgba(47, 125, 83, 0.2);
+    --button-text: #ffffff;
+    --control-chip-bg: rgba(255, 255, 255, 0.96);
+}
+
+html.theme-rugged-yellow {
+    color-scheme: dark;
+    --bg: #11130e;
+    --panel: #1a1d14;
+    --panel-soft: #242719;
+    --text: #f0ead8;
+    --muted: #b0aa90;
+    --border: #4a5032;
+    --accent: #c1a44a;
+    --accent-hover: #dcc263;
+    --accent-soft: rgba(193, 164, 74, 0.15);
+    --accent-soft-hover: rgba(193, 164, 74, 0.24);
+    --danger: #b86f45;
+    --danger-hover: #d98b5c;
+    --shadow: 0 16px 30px rgba(0, 0, 0, 0.42);
+    --radius: 6px;
+    --body-background:
+        linear-gradient(135deg, rgba(77, 86, 45, 0.18) 0 25%, transparent 25% 50%, rgba(77, 86, 45, 0.12) 50% 75%, transparent 75%),
+        radial-gradient(circle at top left, rgba(193, 164, 74, 0.12), transparent 30rem),
+        var(--bg);
+    --header-bg: rgba(26, 29, 20, 0.94);
+    --menu-bg: rgba(26, 29, 20, 0.98);
+    --input-bg: #15180f;
+    --placeholder: #8d896e;
+    --focus-ring: rgba(193, 164, 74, 0.24);
+    --button-text: #171407;
+    --control-chip-bg: rgba(36, 39, 25, 0.97);
+}
+
+html.theme-rugged-blue {
+    color-scheme: dark;
+    --bg: #0b1118;
+    --panel: #121b25;
+    --panel-soft: #1a2633;
+    --text: #e7edf2;
+    --muted: #9ba9b6;
+    --border: #35475a;
+    --accent: #7ea6c9;
+    --accent-hover: #9bbfdd;
+    --accent-soft: rgba(126, 166, 201, 0.15);
+    --accent-soft-hover: rgba(126, 166, 201, 0.25);
+    --danger: #b96f55;
+    --danger-hover: #d98b6b;
+    --shadow: 0 16px 30px rgba(0, 0, 0, 0.45);
+    --radius: 6px;
+    --body-background:
+        linear-gradient(135deg, rgba(42, 60, 78, 0.22) 0 25%, transparent 25% 50%, rgba(42, 60, 78, 0.14) 50% 75%, transparent 75%),
+        radial-gradient(circle at top left, rgba(126, 166, 201, 0.12), transparent 30rem),
+        var(--bg);
+    --header-bg: rgba(18, 27, 37, 0.95);
+    --menu-bg: rgba(18, 27, 37, 0.98);
+    --input-bg: #0f1720;
+    --placeholder: #7c8996;
+    --focus-ring: rgba(126, 166, 201, 0.24);
+    --button-text: #071019;
+    --control-chip-bg: rgba(26, 38, 51, 0.97);
+}
+
+html.theme-rugged-green {
+    color-scheme: dark;
+    --bg: #0d120b;
+    --panel: #151b12;
+    --panel-soft: #202719;
+    --text: #e8ecd9;
+    --muted: #a9b28e;
+    --border: #3f4d31;
+    --accent: #8ea760;
+    --accent-hover: #abc678;
+    --accent-soft: rgba(142, 167, 96, 0.16);
+    --accent-soft-hover: rgba(142, 167, 96, 0.25);
+    --danger: #b87345;
+    --danger-hover: #d9915d;
+    --shadow: 0 16px 30px rgba(0, 0, 0, 0.45);
+    --radius: 6px;
+    --body-background:
+        linear-gradient(135deg, rgba(53, 69, 39, 0.22) 0 25%, transparent 25% 50%, rgba(53, 69, 39, 0.14) 50% 75%, transparent 75%),
+        radial-gradient(circle at top left, rgba(142, 167, 96, 0.13), transparent 30rem),
+        var(--bg);
+    --header-bg: rgba(21, 27, 18, 0.95);
+    --menu-bg: rgba(21, 27, 18, 0.98);
+    --input-bg: #11170f;
+    --placeholder: #828a6b;
+    --focus-ring: rgba(142, 167, 96, 0.24);
+    --button-text: #0b1007;
+    --control-chip-bg: rgba(32, 39, 25, 0.97);
 }
 
 * {
@@ -39,10 +193,7 @@ body {
         "Segoe UI",
         sans-serif;
     color: var(--text);
-    background:
-        radial-gradient(circle at top left, rgba(100, 184, 131, 0.18), transparent 32rem),
-        radial-gradient(circle at bottom right, rgba(39, 94, 67, 0.14), transparent 30rem),
-        var(--bg);
+    background: var(--body-background);
     background-attachment: fixed;
     background-repeat: no-repeat;
     background-size: cover;
@@ -58,7 +209,7 @@ a {
     gap: 1rem;
     min-height: var(--header-height);
     padding: 1rem 2rem;
-    background: rgba(18, 31, 24, 0.86);
+    background: var(--header-bg);
     border-bottom: 1px solid var(--border);
     backdrop-filter: blur(12px);
     position: sticky;
@@ -69,6 +220,117 @@ a {
 
 .site-header > .brand-logo {
     margin-left: auto;
+}
+
+.theme-picker {
+    position: absolute;
+    top: 50%;
+    right: calc(2rem + 72px + 1rem);
+    transform: translateY(-50%);
+    flex: 0 0 auto;
+}
+
+.theme-picker-trigger {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel-soft);
+    cursor: pointer;
+    list-style: none;
+}
+
+.theme-picker-trigger::-webkit-details-marker {
+    display: none;
+}
+
+.theme-picker-trigger:hover,
+.theme-picker[open] .theme-picker-trigger {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+}
+
+.theme-picker-icon {
+    display: block;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    background:
+        linear-gradient(90deg, var(--accent) 0 50%, transparent 50%),
+        var(--panel);
+    box-shadow: inset 0 0 0 3px var(--panel-soft);
+}
+
+.theme-picker-menu {
+    position: absolute;
+    top: calc(100% + 0.55rem);
+    right: 0;
+    z-index: 1000;
+    display: grid;
+    min-width: 210px;
+    gap: 0.35rem;
+    padding: 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+}
+
+.theme-picker-option {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    border: 0;
+    border-radius: 8px;
+    padding: 0.65rem 0.7rem;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-weight: 800;
+    text-align: left;
+    cursor: pointer;
+}
+
+.theme-picker-option:hover,
+.theme-picker-option.is-active {
+    background: var(--accent-soft);
+}
+
+.theme-option-swatch {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: #64b883;
+}
+
+.theme-option-swatch-dark-green {
+    background: linear-gradient(135deg, #0c1410 0 50%, #64b883 50%);
+}
+
+.theme-option-swatch-dark-mode {
+    background: linear-gradient(135deg, #0b0d10 0 50%, #8ab4f8 50%);
+}
+
+.theme-option-swatch-light-mode {
+    background: linear-gradient(135deg, #f4f6f2 0 50%, #2f7d53 50%);
+}
+
+.theme-option-swatch-rugged-yellow {
+    background: linear-gradient(135deg, #11130e 0 50%, #c1a44a 50%);
+}
+
+.theme-option-swatch-rugged-blue {
+    background: linear-gradient(135deg, #0b1118 0 50%, #7ea6c9 50%);
+}
+
+.theme-option-swatch-rugged-green {
+    background: linear-gradient(135deg, #0d120b 0 50%, #8ea760 50%);
 }
 
 .menu-toggle {
@@ -114,7 +376,7 @@ a {
     z-index: 9;
     width: var(--side-menu-width);
     padding: 1.25rem;
-    background: rgba(18, 31, 24, 0.98);
+    background: var(--menu-bg);
     border-right: 1px solid var(--border);
     box-shadow: var(--shadow);
     transform: translateX(-100%);
@@ -205,19 +467,19 @@ textarea {
     border-radius: 12px;
     padding: 0.8rem 0.9rem;
     font: inherit;
-    background: #0f1a14;
+    background: var(--input-bg);
     color: var(--text);
 }
 
 input::placeholder,
 textarea::placeholder {
-    color: #74877b;
+    color: var(--placeholder);
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-    outline: 3px solid rgba(100, 184, 131, 0.22);
+    outline: 3px solid var(--focus-ring);
     border-color: var(--accent);
 }
 
@@ -234,7 +496,7 @@ textarea:focus {
     border-radius: 999px;
     padding: 0.78rem 1rem;
     background: var(--accent);
-    color: #07110b;
+    color: var(--button-text);
     font-weight: 800;
     line-height: 1;
     text-decoration: none;
@@ -265,6 +527,70 @@ textarea:focus {
     background: var(--panel-soft);
 }
 
+body.theme-rugged-yellow input,
+body.theme-rugged-yellow select,
+body.theme-rugged-yellow textarea,
+body.theme-rugged-yellow .button,
+body.theme-rugged-yellow .theme-picker-trigger,
+body.theme-rugged-yellow .theme-picker-menu,
+body.theme-rugged-yellow .theme-picker-option,
+body.theme-rugged-blue input,
+body.theme-rugged-blue select,
+body.theme-rugged-blue textarea,
+body.theme-rugged-blue .button,
+body.theme-rugged-blue .theme-picker-trigger,
+body.theme-rugged-blue .theme-picker-menu,
+body.theme-rugged-blue .theme-picker-option,
+body.theme-rugged-green input,
+body.theme-rugged-green select,
+body.theme-rugged-green textarea,
+body.theme-rugged-green .button,
+body.theme-rugged-green .theme-picker-trigger,
+body.theme-rugged-green .theme-picker-menu,
+body.theme-rugged-green .theme-picker-option {
+    border-radius: 4px;
+}
+
+body.theme-rugged-yellow .panel,
+body.theme-rugged-yellow .form-section,
+body.theme-rugged-yellow .item-card,
+body.theme-rugged-yellow .location-row,
+body.theme-rugged-blue .panel,
+body.theme-rugged-blue .form-section,
+body.theme-rugged-blue .item-card,
+body.theme-rugged-blue .location-row,
+body.theme-rugged-green .panel,
+body.theme-rugged-green .form-section,
+body.theme-rugged-green .item-card,
+body.theme-rugged-green .location-row {
+    border-width: 2px;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+        var(--shadow);
+}
+
+body.theme-rugged-yellow .site-header,
+body.theme-rugged-yellow .side-menu,
+body.theme-rugged-blue .site-header,
+body.theme-rugged-blue .side-menu,
+body.theme-rugged-green .site-header,
+body.theme-rugged-green .side-menu {
+    backdrop-filter: none;
+}
+
+body.theme-rugged-yellow .button,
+body.theme-rugged-yellow label,
+body.theme-rugged-yellow .theme-picker-option,
+body.theme-rugged-blue .button,
+body.theme-rugged-blue label,
+body.theme-rugged-blue .theme-picker-option,
+body.theme-rugged-green .button,
+body.theme-rugged-green label,
+body.theme-rugged-green .theme-picker-option {
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
 .button.small {
     padding: 0.55rem 0.75rem;
     font-size: 0.9rem;
@@ -274,4 +600,3 @@ textarea:focus {
     opacity: 0.45;
     cursor: not-allowed;
 }
-

@@ -216,7 +216,7 @@
     padding: 0.35rem 0.55rem;
     border: 1px solid var(--border);
     border-radius: 999px;
-    background: rgba(25, 40, 31, 0.96);
+    background: var(--control-chip-bg);
     color: var(--text);
     cursor: pointer;
 }
@@ -232,7 +232,7 @@
     padding: 0.35rem 0.55rem;
     border: 1px solid var(--border);
     border-radius: 999px;
-    background: rgba(25, 40, 31, 0.96);
+    background: var(--control-chip-bg);
     color: var(--text);
 }
 

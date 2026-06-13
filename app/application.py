@@ -59,6 +59,40 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/assets", StaticFiles(directory="app/assets"), name="assets")
 
 
+THEME_OPTIONS = {
+    "dark-green": "Dark Green",
+    "dark-mode": "Dark Mode",
+    "light-mode": "Light Mode",
+    "rugged-yellow": "Rugged yellow",
+    "rugged-blue": "Rugged dark blue",
+    "rugged-green": "Rugged dark green",
+}
+
+
+def normalize_theme(theme: str) -> str:
+    if theme == "dark-rugged":
+        return "rugged-yellow"
+
+    return theme if theme in THEME_OPTIONS else "dark-green"
+
+
+@app.middleware("http")
+async def add_theme_to_request(request: Request, call_next):
+    request.state.theme = "dark-green"
+    request.state.theme_options = THEME_OPTIONS
+
+    if not request.url.path.startswith(("/static", "/assets")):
+        try:
+            with Session(engine) as session:
+                request.state.theme = normalize_theme(
+                    get_settings(session).get("theme", "dark-green")
+                )
+        except Exception:
+            request.state.theme = "dark-green"
+
+    return await call_next(request)
+
+
 @app.on_event("startup")
 async def on_startup() -> None:
     create_db_and_tables()
@@ -161,6 +195,8 @@ def get_settings(session: Session) -> dict[str, str]:
 
     for row in rows:
         settings[row.key] = row.value
+
+    settings["theme"] = normalize_theme(settings.get("theme", "dark-green"))
 
     return settings
 
@@ -986,6 +1022,7 @@ def settings_page(
         name="settings.html",
         context={
             "settings": get_settings(session),
+            "theme_options": THEME_OPTIONS,
             "status": status,
         },
     )
@@ -995,6 +1032,7 @@ def settings_page(
 def update_settings(
     session: Session = Depends(get_session),
     base_url: str = Form(""),
+    theme: str = Form("dark-green"),
     ntfy_enabled: Optional[str] = Form(None),
     ntfy_server_url: str = Form(""),
     ntfy_topic: str = Form(""),
@@ -1003,6 +1041,7 @@ def update_settings(
     action: str = Form("save"),
 ):
     set_setting(session, "base_url", (base_url.strip() or BASE_URL).rstrip("/"))
+    set_setting(session, "theme", normalize_theme(theme))
     set_setting(session, "ntfy_enabled", "true" if ntfy_enabled == "true" else "false")
     set_setting(session, "ntfy_server_url", ntfy_server_url.strip())
     set_setting(session, "ntfy_topic", ntfy_topic.strip())
@@ -1026,6 +1065,21 @@ def update_settings(
         status = "saved"
 
     return RedirectResponse(url=f"/settings?status={status}", status_code=303)
+
+
+@app.post("/settings/theme")
+def update_theme(
+    session: Session = Depends(get_session),
+    theme: str = Form("dark-green"),
+    next_url: str = Form("/items"),
+):
+    set_setting(session, "theme", normalize_theme(theme))
+    session.commit()
+
+    if not next_url.startswith("/") or next_url.startswith("//"):
+        next_url = "/items"
+
+    return RedirectResponse(url=next_url, status_code=303)
 
 
 @app.get("/settings/database/backup")

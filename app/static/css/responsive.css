@@ -103,6 +103,10 @@
         padding: 1rem;
     }
 
+    .theme-picker {
+        right: calc(1rem + 72px + 1rem);
+    }
+
     .filters {
         grid-template-columns: 1fr;
     }

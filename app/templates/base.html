@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en-GB">
+<html lang="en-GB" class="theme-{{ request.state.theme | default('dark-green') }}">
 <head>
     <meta charset="utf-8">
 
@@ -11,7 +11,7 @@
 
     {% block head %}{% endblock %}
 </head>
-<body>
+<body class="theme-{{ request.state.theme | default('dark-green') }}">
     <input class="menu-toggle" id="menu-toggle" type="checkbox" aria-hidden="true">
 
     <header class="site-header">
@@ -27,6 +27,28 @@
             </h1>
             <p class="subtitle">Food and household inventory</p>
         </div>
+
+        <details class="theme-picker">
+            <summary class="theme-picker-trigger" aria-label="Choose theme" title="Choose theme">
+                <span class="theme-picker-icon" aria-hidden="true"></span>
+            </summary>
+
+            <div class="theme-picker-menu">
+                {% for theme_value, theme_label in request.state.theme_options.items() %}
+                    <form method="post" action="/settings/theme">
+                        <input type="hidden" name="theme" value="{{ theme_value }}">
+                        <input type="hidden" name="next_url" value="{{ request.url.path }}">
+                        <button
+                            class="theme-picker-option {% if request.state.theme == theme_value %}is-active{% endif %}"
+                            type="submit"
+                        >
+                            <span class="theme-option-swatch theme-option-swatch-{{ theme_value }}" aria-hidden="true"></span>
+                            <span>{{ theme_label }}</span>
+                        </button>
+                    </form>
+                {% endfor %}
+            </div>
+        </details>
 
         <img
             class="brand-logo"

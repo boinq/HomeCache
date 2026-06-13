@@ -9,7 +9,7 @@
             <div>
                 <p class="eyebrow">Configuration</p>
                 <h2>Settings</h2>
-                <p class="subtitle">Configure external access and ntfy expiry notifications.</p>
+                <p class="subtitle">Configure appearance, external access, and ntfy expiry notifications.</p>
             </div>
         </div>
 
@@ -24,6 +24,26 @@
         {% endif %}
 
         <form class="item-form" method="post" action="/settings">
+            <section class="form-section">
+                <h3>Appearance</h3>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="theme">Theme</label>
+                        <select id="theme" name="theme">
+                            {% for theme_value, theme_label in theme_options.items() %}
+                                <option
+                                    value="{{ theme_value }}"
+                                    {% if settings.theme == theme_value %}selected{% endif %}
+                                >
+                                    {{ theme_label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </section>
+
             <section class="form-section">
                 <h3>Access</h3>
 
