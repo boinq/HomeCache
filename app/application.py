@@ -611,24 +611,26 @@ def home():
     return RedirectResponse(url="/items", status_code=303)
 
 
-@app.get("/items", response_class=HTMLResponse)
-def list_items(
-    request: Request,
-    session: Session = Depends(get_session),
+def item_list_context(
+    session: Session,
     q: Optional[str] = None,
     location: Optional[str] = None,
     category: Optional[str] = None,
     sort_by: str = "created_at",
     sort_dir: str = "desc",
     view: str = "cards",
-):
+    form_action: str = "/items",
+    clear_url: str = "/items",
+    location_view: Optional[Location] = None,
+) -> dict:
+    location_name = location_view.name if location_view else location
     statement = select(Item).where(Item.status == ItemStatus.ACTIVE)
 
     if q:
         statement = statement.where(Item.name.contains(q))
 
-    if location:
-        statement = statement.where(Item.storage_location == location)
+    if location_name:
+        statement = statement.where(Item.storage_location == location_name)
 
     if category:
         statement = statement.where(Item.category == category)
@@ -663,19 +665,44 @@ def list_items(
         for category_name in sorted({item.category or "other" for item in items})
     ]
 
+    return {
+        "items": items,
+        "item_groups": item_groups,
+        "q": q or "",
+        "location": location_name or "",
+        "category": category or "",
+        "sort_by": sort_by,
+        "sort_dir": sort_dir,
+        "view_mode": view_mode,
+        "form_action": form_action,
+        "clear_url": clear_url,
+        "location_view": location_view,
+    }
+
+
+@app.get("/items", response_class=HTMLResponse)
+def list_items(
+    request: Request,
+    session: Session = Depends(get_session),
+    q: Optional[str] = None,
+    location: Optional[str] = None,
+    category: Optional[str] = None,
+    sort_by: str = "created_at",
+    sort_dir: str = "desc",
+    view: str = "cards",
+):
     return templates.TemplateResponse(
         request=request,
         name="item_list.html",
-        context={
-            "items": items,
-            "item_groups": item_groups,
-            "q": q or "",
-            "location": location or "",
-            "category": category or "",
-            "sort_by": sort_by,
-            "sort_dir": sort_dir,
-            "view_mode": view_mode,
-        },
+        context=item_list_context(
+            session=session,
+            q=q,
+            location=location,
+            category=category,
+            sort_by=sort_by,
+            sort_dir=sort_dir,
+            view=view,
+        ),
     )
 
 
@@ -837,6 +864,49 @@ def locations_page(
             "item_counts": count_items_by_location(session),
         },
     )
+
+
+@app.get("/locations/{location_id}/items", response_class=HTMLResponse)
+def location_items_page(
+    location_id: int,
+    request: Request,
+    session: Session = Depends(get_session),
+    q: Optional[str] = None,
+    category: Optional[str] = None,
+    sort_by: str = "created_at",
+    sort_dir: str = "desc",
+    view: str = "cards",
+):
+    location = get_location_or_404(session, location_id)
+    return templates.TemplateResponse(
+        request=request,
+        name="item_list.html",
+        context=item_list_context(
+            session=session,
+            q=q,
+            category=category,
+            sort_by=sort_by,
+            sort_dir=sort_dir,
+            view=view,
+            form_action=f"/locations/{location.id}/items",
+            clear_url=f"/locations/{location.id}/items",
+            location_view=location,
+        ),
+    )
+
+
+@app.get("/locations/{location_id}/qr")
+def location_qr_code(
+    location_id: int,
+    session: Session = Depends(get_session),
+):
+    location = get_location_or_404(session, location_id)
+    img = qrcode.make(f"{get_base_url(session)}/locations/{location.id}/items")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    return StreamingResponse(buffer, media_type="image/png")
 
 
 @app.post("/locations")
@@ -1488,6 +1558,36 @@ def print_labels(
             "item_groups": item_groups,
             "selected": selected,
             "selected_batch_ids": {str(batch_id) for batch_id in selected_ids},
+        },
+    )
+
+
+@app.get("/print-location-labels", response_class=HTMLResponse)
+def print_location_labels(
+    request: Request,
+    session: Session = Depends(get_session),
+    location_id: Optional[list[int]] = Query(None),
+    selected: bool = False,
+):
+    locations = list_locations(session)
+    selected_ids = set(location_id or [])
+
+    if selected:
+        selected_locations = [
+            location for location in locations if location.id in selected_ids
+        ]
+    else:
+        selected_locations = locations
+
+    return templates.TemplateResponse(
+        request=request,
+        name="print_location_labels.html",
+        context={
+            "locations": selected_locations,
+            "all_locations": locations,
+            "item_counts": count_items_by_location(session),
+            "selected": selected,
+            "selected_location_ids": {str(location_id) for location_id in selected_ids},
         },
     )
 

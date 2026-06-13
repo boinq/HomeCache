@@ -289,6 +289,11 @@
         margin: 0;
     }
 
+    @page brother-dk1202 {
+        size: 62mm 100mm;
+        margin: 0;
+    }
+
     html,
     body {
         background: #fff;
@@ -300,6 +305,10 @@
         page: brother-ql-700;
         width: 62mm;
         min-width: 62mm;
+    }
+
+    body.print-format-brother[data-print-format="brother-dk1202"] {
+        page: brother-dk1202;
     }
 
     .site-header,
@@ -410,6 +419,11 @@
         page-break-after: auto;
     }
 
+    body.print-format-brother[data-print-format="brother-dk1202"] .brother-print-page {
+        page: brother-dk1202;
+        height: 100mm;
+    }
+
     body.print-format-brother .brother-print-page + .brother-print-page {
         break-before: page;
         page-break-before: always;
@@ -435,6 +449,14 @@
         page-break-after: auto;
     }
 
+    body.print-format-brother[data-print-format="brother-dk1202"] .brother-print-page .sheet-label {
+        height: 100mm;
+        grid-template-columns: 1fr;
+        grid-template-rows: 31mm 1fr;
+        justify-items: center;
+        padding: 4mm;
+    }
+
     body.print-format-brother .brother-print-page .sheet-label-info {
         align-self: start;
         display: flex;
@@ -445,9 +467,21 @@
         padding: 0;
     }
 
+    body.print-format-brother[data-print-format="brother-dk1202"] .brother-print-page .sheet-label-info {
+        width: 100%;
+        height: auto;
+        justify-content: flex-start;
+        text-align: center;
+    }
+
     body.print-format-brother .brother-print-page .sheet-label-qr img {
         width: 21.6mm;
         height: 21.6mm;
+    }
+
+    body.print-format-brother[data-print-format="brother-dk1202"] .brother-print-page .sheet-label-qr img {
+        width: 31mm;
+        height: 31mm;
     }
 
     body.print-format-brother .brother-print-page .sheet-label-info h3 {
@@ -456,14 +490,21 @@
         line-height: 1.1;
     }
 
+    body.print-format-brother[data-print-format="brother-dk1202"] .brother-print-page .sheet-label-info h3 {
+        font-size: 16pt;
+    }
+
     body.print-format-brother .brother-print-page .sheet-label-info p {
         margin: 0;
         font-size: 8.2pt;
         line-height: 1.1;
     }
 
+    body.print-format-brother[data-print-format="brother-dk1202"] .brother-print-page .sheet-label-info p {
+        font-size: 11pt;
+    }
+
     body.print-format-brother .brother-print-page .sheet-label:not(.is-print-selected) {
         display: none;
     }
 }
-

@@ -12,7 +12,10 @@
                 <p class="subtitle">Manage the places you can choose from when adding or editing items.</p>
             </div>
 
-            <a class="button ghost" href="/items">Back</a>
+            <div class="toolbar-actions">
+                <a class="button secondary" href="/print-location-labels">Print labels</a>
+                <a class="button ghost" href="/items">Back</a>
+            </div>
         </div>
 
         <form class="location-create-form" method="post" action="/locations">
@@ -35,6 +38,10 @@
                 {% for location in locations %}
                     {% set item_count = item_counts.get(location.name, 0) %}
                     <article class="location-row">
+                        <a class="qr-thumb location-qr-thumb" href="/locations/{{ location.id }}/qr" target="_blank" title="Open {{ location.name }} QR">
+                            <img src="/locations/{{ location.id }}/qr" alt="QR code for {{ location.name }} items">
+                        </a>
+
                         <form class="location-edit-form" method="post" action="/locations/{{ location.id }}/edit">
                             <div class="field">
                                 <label for="location-{{ location.id }}">Name</label>
@@ -53,6 +60,8 @@
 
                             <button class="button small secondary" type="submit">Save</button>
                         </form>
+
+                        <a class="button small ghost" href="/locations/{{ location.id }}/items">View items</a>
 
                         <form method="post" action="/locations/{{ location.id }}/delete">
                             <button

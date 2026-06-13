@@ -8,7 +8,7 @@ HomeCache is a small self-hosted inventory app for food and household items. It 
 - Add batches/sub-items with quantity, purchase date, expiry date, opened date, and frozen date
 - Generate QR codes for batches
 - Scan a batch QR code and consume one unit from that batch
-- Print labels on A4 sheets or Brother QL-700 `62mm x 29mm` labels
+- Print labels on A4 sheets or Brother QL-700 62mm paper rolls (`DK-1202`, `DK-2205`, `DK-4205`, `DK-4605`)
 - Choose which batches to print and how many copies of each label
 - Print an inventory summary list
 - Manage categories and locations

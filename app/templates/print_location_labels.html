@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Print labels - HomeCache{% endblock %}
+{% block title %}Print location labels - HomeCache{% endblock %}
 
 {% block content %}
 <section class="print-labels-page">
     <div class="print-labels-toolbar no-print">
         <div>
-            <h2>Print labels</h2>
+            <h2>Print location labels</h2>
             <p class="subtitle">
-                <span data-selected-count>{{ items | length }}</span>
-                selected label<span data-selected-plural>{% if items | length != 1 %}s{% endif %}</span>
+                <span data-selected-count>{{ locations | length }}</span>
+                selected label<span data-selected-plural>{% if locations | length != 1 %}s{% endif %}</span>
                 &middot;
-                <span data-copy-count>{{ items | length }}</span>
-                total print<span data-copy-plural>{% if items | length != 1 %}s{% endif %}</span>.
+                <span data-copy-count>{{ locations | length }}</span>
+                total print<span data-copy-plural>{% if locations | length != 1 %}s{% endif %}</span>.
             </p>
         </div>
 
         <div class="toolbar-actions">
-            <a class="button ghost" href="/items">Back to items</a>
-            {% if all_items %}
+            <a class="button ghost" href="/locations">Back to locations</a>
+            {% if all_locations %}
                 <select class="print-format-select" aria-label="Print format" data-print-format>
                     <option value="a4">A4 labels</option>
                     <option value="brother-dk1202">Brother DK-1202 62 x 100mm</option>
@@ -34,130 +34,50 @@
         </div>
     </div>
 
-    {% if item_groups %}
-        <form id="label-print-form" action="/print-labels" method="get">
+    {% if all_locations %}
+        <form id="label-print-form" action="/print-location-labels" method="get">
             <input type="hidden" name="selected" value="true">
-            <section class="label-sheet">
-                {% for group in item_groups %}
-                    {% set item = group.item %}
-                    <section class="print-label-item">
-                        <div class="print-label-item-header no-print">
-                            <div>
-                                <h3>{{ item.name }}</h3>
-                                <p class="subtitle">
-                                    {{ group.batches | length }} batch{% if group.batches | length != 1 %}es{% endif %}
-                                    &middot; {{ item.storage_location }}
-                                </p>
-                            </div>
+            <section class="label-sheet location-label-sheet">
+                {% for location in all_locations %}
+                    <article class="sheet-label {% if not selected or location.id|string in selected_location_ids %}is-print-selected{% endif %}">
+                        <label class="sheet-label-select no-print">
+                            <input
+                                type="checkbox"
+                                name="location_id"
+                                value="{{ location.id }}"
+                                {% if not selected or location.id|string in selected_location_ids %}checked{% endif %}
+                            >
+                            <span>Print</span>
+                        </label>
 
-                            {% if group.batches %}
-                                <button class="button small ghost" type="button" data-label-select-item>Toggle item</button>
-                            {% endif %}
+                        <label class="sheet-label-copy no-print">
+                            <span>Copies</span>
+                            <input
+                                type="number"
+                                min="1"
+                                step="1"
+                                value="1"
+                                data-label-copies
+                                aria-label="Copies of {{ location.name }} label"
+                            >
+                        </label>
+
+                        <div class="sheet-label-qr">
+                            <img src="/locations/{{ location.id }}/qr" alt="QR code for {{ location.name }} items">
                         </div>
 
-                        {% if group.batches %}
-                            <div class="print-label-batches">
-                                {% for batch in group.batches %}
-                                    <article class="sheet-label {% if not selected or batch.public_id|string in selected_batch_ids %}is-print-selected{% endif %}">
-                                        <label class="sheet-label-select no-print">
-                                            <input
-                                                type="checkbox"
-                                                name="batch_id"
-                                                value="{{ batch.public_id }}"
-                                                {% if not selected or batch.public_id|string in selected_batch_ids %}checked{% endif %}
-                                            >
-                                            <span>Print</span>
-                                        </label>
-
-                                        <label class="sheet-label-copy no-print">
-                                            <span>Copies</span>
-                                            <input
-                                                type="number"
-                                                min="1"
-                                                step="1"
-                                                value="1"
-                                                data-label-copies
-                                                aria-label="Copies of {{ item.name }} label"
-                                            >
-                                        </label>
-
-                                        <div class="sheet-label-qr">
-                                            <img src="/items/{{ item.id }}/batches/{{ batch.public_id }}/qr" alt="QR code for {{ item.name }} batch {{ batch.public_id }}">
-                                        </div>
-
-                                        <div class="sheet-label-info">
-                                            <h3>{{ item.name }}</h3>
-
-                                            {% if item.brand %}
-                                                <p class="label-brand">
-                                                    <strong>Brand:</strong>
-                                                    {{ item.brand }}
-                                                </p>
-                                            {% endif %}
-
-                                            <p class="label-extra">
-                                                {{ batch.quantity | int }} {{ item.unit }}
-                                                &middot; {{ item.category }}
-                                            </p>
-
-                                            <p class="label-extra">
-                                                <strong>Location:</strong>
-                                                {{ item.storage_location }}
-                                                {% if item.storage_area %}
-                                                    / {{ item.storage_area }}
-                                                {% endif %}
-                                            </p>
-
-                                            {% if item.container %}
-                                                <p class="label-extra">
-                                                    <strong>Container:</strong>
-                                                    {{ item.container }}
-                                                </p>
-                                            {% endif %}
-
-                                            {% if batch.purchase_date %}
-                                                <p class="label-extra">
-                                                    <strong>Purchased:</strong>
-                                                    {{ batch.purchase_date | format_date }}
-                                                </p>
-                                            {% endif %}
-
-                                            {% if batch.expiry_date %}
-                                                <p class="label-expiry">
-                                                    <strong>Expires:</strong>
-                                                    {{ batch.expiry_date | format_date }}
-                                                </p>
-                                            {% endif %}
-
-                                            {% if batch.opened_date %}
-                                                <p class="label-extra">
-                                                    <strong>Opened:</strong>
-                                                    {{ batch.opened_date | format_date }}
-                                                </p>
-                                            {% endif %}
-
-                                            {% if batch.frozen_date %}
-                                                <p class="label-extra">
-                                                    <strong>Frozen:</strong>
-                                                    {{ batch.frozen_date | format_date }}
-                                                </p>
-                                            {% endif %}
-                                        </div>
-                                    </article>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <p class="batch-empty no-print">Nothing in stock.</p>
-                        {% endif %}
-                    </section>
+                        <div class="sheet-label-info">
+                            <h3>{{ location.name }}</h3>
+                        </div>
+                    </article>
                 {% endfor %}
             </section>
         </form>
     {% else %}
         <section class="empty-state no-print">
-            <h2>No active items</h2>
-            <p>Add some items before printing labels.</p>
-            <a class="button" href="/items/new">Add item</a>
+            <h2>No locations yet</h2>
+            <p>Add a location before printing location labels.</p>
+            <a class="button" href="/locations">Add location</a>
         </section>
     {% endif %}
 </section>
@@ -273,13 +193,8 @@
             }
         });
 
-        if (firstSelectedLabel) {
-            firstSelectedLabel.classList.add("is-first-print-label");
-        }
-
-        if (lastSelectedLabel) {
-            lastSelectedLabel.classList.add("is-last-print-label");
-        }
+        firstSelectedLabel?.classList.add("is-first-print-label");
+        lastSelectedLabel?.classList.add("is-last-print-label");
 
         if (selectedCount) {
             selectedCount.textContent = count;
@@ -418,22 +333,12 @@
         const pages = printableLabels.map((label) => {
             const qr = label.querySelector(".sheet-label-qr img");
             const title = label.querySelector(".sheet-label-info h3");
-            const brand = label.querySelector(".label-brand");
-            const expiry = label.querySelector(".label-expiry");
-            const extraDetails = selectedFormat.layout === "tall"
-                ? Array.from(label.querySelectorAll(".label-extra"))
-                    .map((detail) => `<p>${escapeHtml(detail.textContent.trim())}</p>`)
-                    .join("")
-                : "";
 
             return `
                 <section class="label-page label-page-${escapeHtml(selectedFormat.layout)}">
                     <img class="label-qr" src="${escapeHtml(qr?.src || "")}" alt="">
                     <div class="label-info">
                         <h1>${escapeHtml(title?.textContent.trim() || "")}</h1>
-                        ${brand ? `<p>${escapeHtml(brand.textContent.trim())}</p>` : ""}
-                        ${extraDetails}
-                        ${expiry ? `<p>${escapeHtml(expiry.textContent.trim())}</p>` : ""}
                     </div>
                 </section>
             `;
@@ -445,7 +350,7 @@
             <html>
             <head>
                 <meta charset="utf-8">
-                <title>${escapeHtml(selectedFormat.roll)} labels</title>
+                <title>${escapeHtml(selectedFormat.roll)} location labels</title>
                 <style>
                     @page {
                         size: ${selectedFormat.width} ${selectedFormat.height};
@@ -556,21 +461,6 @@
             input.checked = false;
         });
         updatePrintSelection();
-    });
-
-    document.querySelectorAll("[data-label-select-item]").forEach((button) => {
-        button.addEventListener("click", () => {
-            const groupInputs = button
-                .closest(".print-label-item")
-                .querySelectorAll(".sheet-label-select input");
-            const shouldSelect = Array.from(groupInputs).some((input) => !input.checked);
-
-            groupInputs.forEach((input) => {
-                input.checked = shouldSelect;
-            });
-
-            updatePrintSelection();
-        });
     });
 
     document.querySelector("[data-label-print]")?.addEventListener("click", () => {

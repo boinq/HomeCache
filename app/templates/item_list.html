@@ -1,10 +1,30 @@
 {% extends "base.html" %}
 
-{% block title %}Items - HomeCache{% endblock %}
+{% block title %}
+    {% if location_view %}
+        {{ location_view.name }} items - HomeCache
+    {% else %}
+        Items - HomeCache
+    {% endif %}
+{% endblock %}
 
 {% block content %}
 <section class="panel">
-    <form class="filters" method="get" action="/items">
+    {% if location_view %}
+        <div class="location-view-header">
+            <div>
+                <p class="eyebrow">Location</p>
+                <h2>{{ location_view.name }}</h2>
+                <p class="subtitle">Items stored in this location.</p>
+            </div>
+
+            <a class="qr-thumb" href="/locations/{{ location_view.id }}/qr" target="_blank" title="Open location QR">
+                <img src="/locations/{{ location_view.id }}/qr" alt="QR code for {{ location_view.name }} items">
+            </a>
+        </div>
+    {% endif %}
+
+    <form class="filters" method="get" action="{{ form_action }}">
         <div class="field">
             <label for="q">Search</label>
             <input
@@ -16,16 +36,20 @@
             >
         </div>
 
-        <div class="field">
-            <label for="location">Location</label>
-            <input
-                id="location"
-                name="location"
-                type="text"
-                value="{{ location }}"
-                placeholder="Fridge, pantry, garage..."
-            >
-        </div>
+        {% if location_view %}
+            <input type="hidden" name="location" value="{{ location }}">
+        {% else %}
+            <div class="field">
+                <label for="location">Location</label>
+                <input
+                    id="location"
+                    name="location"
+                    type="text"
+                    value="{{ location }}"
+                    placeholder="Fridge, pantry, garage..."
+                >
+            </div>
+        {% endif %}
 
         <div class="field">
             <label for="category">Category</label>
@@ -42,20 +66,20 @@
 
         <div class="filter-actions">
             <button class="button" type="submit">Filter</button>
-            <a class="button ghost" href="/items">Clear</a>
+            <a class="button ghost" href="{{ clear_url }}">Clear</a>
         </div>
     </form>
 </section>
 
 <section class="items-header">
-    <h2>Items</h2>
+    <h2>{% if location_view %}{{ location_view.name }} items{% else %}Items{% endif %}</h2>
     <span class="count">
         {{ items | length }} item{% if items | length != 1 %}s{% endif %}
     </span>
 </section>
 
 <section class="sort-panel">
-    <form class="sort-form" method="get" action="/items">
+    <form class="sort-form" method="get" action="{{ form_action }}">
         <input type="hidden" name="q" value="{{ q }}">
         <input type="hidden" name="location" value="{{ location }}">
         <input type="hidden" name="category" value="{{ category }}">
@@ -78,7 +102,7 @@
         </div>
     </form>
 
-    <form class="view-form" method="get" action="/items">
+    <form class="view-form" method="get" action="{{ form_action }}">
         <input type="hidden" name="q" value="{{ q }}">
         <input type="hidden" name="location" value="{{ location }}">
         <input type="hidden" name="category" value="{{ category }}">
@@ -195,7 +219,7 @@
 {% else %}
     <section class="empty-state">
         <h2>No items found</h2>
-        <p>Add your first item or clear the current filters.</p>
+        <p>{% if location_view %}No active items are stored here yet.{% else %}Add your first item or clear the current filters.{% endif %}</p>
         <a class="button" href="/items/new">Add item</a>
     </section>
 {% endif %}
