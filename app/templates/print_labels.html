@@ -49,10 +49,6 @@
                                     &middot; {{ item.storage_location }}
                                 </p>
                             </div>
-
-                            {% if group.batches %}
-                                <button class="button small ghost" type="button" data-label-select-item>Toggle item</button>
-                            {% endif %}
                         </div>
 
                         {% if group.batches %}
@@ -556,21 +552,6 @@
             input.checked = false;
         });
         updatePrintSelection();
-    });
-
-    document.querySelectorAll("[data-label-select-item]").forEach((button) => {
-        button.addEventListener("click", () => {
-            const groupInputs = button
-                .closest(".print-label-item")
-                .querySelectorAll(".sheet-label-select input");
-            const shouldSelect = Array.from(groupInputs).some((input) => !input.checked);
-
-            groupInputs.forEach((input) => {
-                input.checked = shouldSelect;
-            });
-
-            updatePrintSelection();
-        });
     });
 
     document.querySelector("[data-label-print]")?.addEventListener("click", () => {

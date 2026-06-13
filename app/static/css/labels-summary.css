@@ -188,7 +188,8 @@
 .sheet-label {
     position: relative;
     display: grid;
-    grid-template-columns: 96px 1fr;
+    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
     gap: 0.75rem;
     align-items: center;
     min-height: 132px;
@@ -206,9 +207,9 @@
 }
 
 .sheet-label-select {
-    position: absolute;
-    top: 0.55rem;
-    right: 0.55rem;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -222,10 +223,11 @@
 }
 
 .sheet-label-copy {
-    position: absolute;
-    right: 0.55rem;
-    bottom: 0.55rem;
+    grid-column: 2;
+    grid-row: 3;
+    justify-self: end;
     display: inline-flex;
+    flex-direction: row;
     align-items: center;
     gap: 0.35rem;
     width: fit-content;
@@ -255,13 +257,15 @@
 }
 
 .sheet-label-qr {
+    grid-column: 1;
+    grid-row: 2;
     display: grid;
     place-items: center;
 }
 
 .sheet-label-qr img {
-    width: 88px;
-    height: 88px;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
 }
 
@@ -269,6 +273,12 @@
     margin: 0 0 0.25rem;
     font-size: 1rem;
     line-height: 1.15;
+}
+
+.sheet-label-info {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: stretch;
 }
 
 .sheet-label-info p {
@@ -363,6 +373,16 @@
 
     .is-print-generated-copy {
         display: grid;
+    }
+
+    .sheet-label-qr {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .sheet-label-info {
+        grid-column: 2;
+        grid-row: 1;
     }
 
     .sheet-label-qr img {
@@ -468,10 +488,17 @@
     }
 
     body.print-format-brother[data-print-format="brother-dk1202"] .brother-print-page .sheet-label-info {
+        grid-column: 1;
+        grid-row: 2;
         width: 100%;
         height: auto;
         justify-content: flex-start;
         text-align: center;
+    }
+
+    body.print-format-brother[data-print-format="brother-dk1202"] .brother-print-page .sheet-label-qr {
+        grid-column: 1;
+        grid-row: 1;
     }
 
     body.print-format-brother .brother-print-page .sheet-label-qr img {

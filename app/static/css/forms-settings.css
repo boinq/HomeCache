@@ -60,6 +60,19 @@ textarea {
     padding-top: 0.5rem;
 }
 
+.form-section-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.settings-save-actions {
+    margin-top: 1rem;
+}
+
+.settings-database-section {
+    margin-top: 1rem;
+}
+
 .locations-layout {
     max-width: 900px;
     margin: 0 auto;

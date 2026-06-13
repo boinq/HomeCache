@@ -1022,7 +1022,6 @@ def settings_page(
         name="settings.html",
         context={
             "settings": get_settings(session),
-            "theme_options": THEME_OPTIONS,
             "status": status,
         },
     )
@@ -1032,7 +1031,6 @@ def settings_page(
 def update_settings(
     session: Session = Depends(get_session),
     base_url: str = Form(""),
-    theme: str = Form("dark-green"),
     ntfy_enabled: Optional[str] = Form(None),
     ntfy_server_url: str = Form(""),
     ntfy_topic: str = Form(""),
@@ -1041,7 +1039,6 @@ def update_settings(
     action: str = Form("save"),
 ):
     set_setting(session, "base_url", (base_url.strip() or BASE_URL).rstrip("/"))
-    set_setting(session, "theme", normalize_theme(theme))
     set_setting(session, "ntfy_enabled", "true" if ntfy_enabled == "true" else "false")
     set_setting(session, "ntfy_server_url", ntfy_server_url.strip())
     set_setting(session, "ntfy_topic", ntfy_topic.strip())

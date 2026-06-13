@@ -9,7 +9,7 @@
             <div>
                 <p class="eyebrow">Configuration</p>
                 <h2>Settings</h2>
-                <p class="subtitle">Configure appearance, external access, and ntfy expiry notifications.</p>
+                <p class="subtitle">Configure external access and ntfy expiry notifications.</p>
             </div>
         </div>
 
@@ -23,27 +23,7 @@
             <p class="status-message">Database restored from backup.</p>
         {% endif %}
 
-        <form class="item-form" method="post" action="/settings">
-            <section class="form-section">
-                <h3>Appearance</h3>
-
-                <div class="form-grid">
-                    <div class="field">
-                        <label for="theme">Theme</label>
-                        <select id="theme" name="theme">
-                            {% for theme_value, theme_label in theme_options.items() %}
-                                <option
-                                    value="{{ theme_value }}"
-                                    {% if settings.theme == theme_value %}selected{% endif %}
-                                >
-                                    {{ theme_label }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-            </section>
-
+        <form id="settings-form" class="item-form" method="post" action="/settings">
             <section class="form-section">
                 <h3>Access</h3>
 
@@ -121,16 +101,15 @@
                             placeholder="Optional"
                         >
                     </div>
+
+                    <div class="form-section-actions span-2">
+                        <button class="button secondary" type="submit" name="action" value="test">Send test</button>
+                    </div>
                 </div>
             </section>
-
-            <div class="form-actions">
-                <button class="button secondary" type="submit" name="action" value="test">Send test</button>
-                <button class="button" type="submit" name="action" value="save">Save settings</button>
-            </div>
         </form>
 
-        <section class="form-section">
+        <section class="form-section settings-database-section">
             <h3>Database backup</h3>
 
             <div class="form-grid">
@@ -156,6 +135,10 @@
                 </form>
             </div>
         </section>
+
+        <div class="form-actions settings-save-actions">
+            <button class="button" type="submit" name="action" value="save" form="settings-form">Save settings</button>
+        </div>
     </article>
 </section>
 {% endblock %}
